@@ -15,8 +15,8 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
             let file: string = getContext(this).filesDir + "/output.log";
-            testNapi.run(file, "500.perlbench_r", []);
-            hilog.info(0x0000, 'testTag', 'Test NAPI %{public}s', fs.readTextSync(file));
+            testNapi.run(file, "500.perlbench_r", "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1".split(" "));
+            hilog.info(0x0000, 'testTag', 'Got output: %{public}s', fs.readTextSync(file));
           })
       }
       .width('100%')

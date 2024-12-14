@@ -2,6 +2,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <string>
+#include <vector>
 
 // parameters:
 // 1: path to log file
@@ -20,14 +21,15 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     napi_get_value_string_utf8(env, args[0], log_file_buffer, sizeof(log_file_buffer), &log_file_size);
     std::string log_file(log_file_buffer, log_file_size);
 
-    freopen(log_file.c_str(), "a", stdout);
-    freopen(log_file.c_str(), "a", stderr);
+    freopen(log_file.c_str(), "w+", stdout);
+    freopen(log_file.c_str(), "w+", stderr);
 
     size_t benchmark_size;
     char benchmark_buffer[512];
     napi_get_value_string_utf8(env, args[1], benchmark_buffer, sizeof(benchmark_buffer), &benchmark_size);
     std::string benchmark(benchmark_buffer, benchmark_size);
 
+    // load benchmark main from library
     int (*main)(int argc, const char **argv, const char **envp);
 
     std::string library_name = "lib";
@@ -36,9 +38,29 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     void *handle = dlopen(library_name.c_str(), RTLD_LAZY);
 
     main = (int (*)(int argc, const char **argv, const char **envp))dlsym(handle, "main");
-    const char *argv[2] = {benchmark.c_str(), NULL};
+    std::vector<std::string> argv;
+    argv.push_back(benchmark);
+    uint32_t args_length;
+    napi_get_array_length(env, args[2], &args_length);
+    for (uint32_t i = 0; i < args_length; i++) {
+        napi_value element;
+        napi_get_element(env, args[2], i, &element);
+
+        size_t arg_size;
+        char arg_buffer[512];
+        napi_get_value_string_utf8(env, element, arg_buffer, sizeof(arg_buffer), &arg_size);
+        std::string arg(arg_buffer, arg_size);
+        argv.push_back(arg);
+    }
+
+    std::vector<const char *> real_argv;
+    for (auto &arg : argv) {
+        real_argv.push_back(arg.c_str());
+    }
+    real_argv.push_back(NULL);
     const char *envp[1] = {NULL};
-    int res = main(1, argv, envp);
+
+    int res = main(1, real_argv.data(), envp);
 
     dlclose(handle);
 
