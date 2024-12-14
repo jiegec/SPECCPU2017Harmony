@@ -1,12 +1,16 @@
-for my $benchmark ("500.perlbench_r", "502.gcc_r") {
+for my $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "523.xalancbmk_r", "525.x264_r", "531.deepsjeng_r", "541.leela_r", "548.exchange2_r", "557.xz_r") {
     require "./benchspec/CPU/" . $benchmark . "/Spec/object.pm";
     mkdir("entry/src/main/cpp/" . $benchmark);
-    system("cp -rv ./benchspec/CPU/" . $benchmark . "/src/* entry/src/main/cpp/" . $benchmark . "/");
+    system("cp -arv ./benchspec/CPU/" . $benchmark . "/src/* entry/src/main/cpp/" . $benchmark . "/");
     open(FH, '>', "entry/src/main/cpp/" . $benchmark . "/CMakeLists.txt") or die $!;
+    if ($benchmark == "525.x264_r") {
+        @sources = @{%sources{"x264_r"}};
+    }
     print(FH "add_library(", $benchmark, " SHARED ", (join " ", @sources) , ")\n");
 
     # add more flags
-    $bench_flags = $bench_flags . " -Wno-error=format-security" . " -DSPEC" . " -DSPEC_LP64" . " -DSPEC_LINUX_AARCH64" . " -DSPEC_NO_USE_STDIO_PTR" . " -DSPEC_NO_USE_STDIO_BASE" . " -O3";
+    $bench_flags = $bench_flags . " " . $bench_cxxflags;
+    $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3";
 
     # convert -I flags to target_include_directories
     for my $flag (split(" ", $bench_flags)) {
@@ -27,5 +31,6 @@ for my $benchmark ("500.perlbench_r", "502.gcc_r") {
 }
 
 # patch code
+# fix compilation
 system("sed -i '1s;^;#include <fcntl.h>\\n;' entry/src/main/cpp/500.perlbench_r/perlio.c");
-system("sed -i 's/exit(\\(.*\\))/return \\1/' entry/src/main/cpp/500.perlbench_r/perlmain.c");
+system("sed -i 's/#if defined __FreeBSD__/#include <stdio.h>\\n#if 1/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
