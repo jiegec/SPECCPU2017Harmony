@@ -145,7 +145,7 @@ struct Index {
       ratios.push(ratio);
       geomean *= ratio;
     }
-    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1 / benchmarks.size) + "\n";
+    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1 / result.size) + "\n";
   }
 
   build() {
@@ -157,15 +157,14 @@ struct Index {
             .fontFamily('monospace')
             .width('100%')
         }
-
-        Text("Run")
-          .fontSize(20)
+        Text("Run Benchmarks")
+          .fontSize(30)
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
             this.runBenchmarks();
           })
-        Text("Copy")
-          .fontSize(20)
+        Text("Copy Result")
+          .fontSize(30)
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
             let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.log);
@@ -180,6 +179,6 @@ struct Index {
       }
       .width('100%')
     }
-    .height('100%')
+    .height('90%')
   }
 }
