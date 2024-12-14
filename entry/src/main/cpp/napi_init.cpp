@@ -6,6 +6,7 @@
 #include <sched.h>
 #include <assert.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 
 #include "hilog/log.h"
 #undef LOG_TAG
@@ -130,9 +131,19 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     real_argv.push_back(NULL);
     const char *envp[1] = {NULL};
 
+    // use fork
+    // 502.gcc_r does not free memory, leading to out of memory
     OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
     uint64_t before = get_time();
-    main(1 + args_length, real_argv.data(), envp);
+    pid_t pid = fork();
+    if (pid == 0) {
+        main(1 + args_length, real_argv.data(), envp);
+        exit(0);
+    } else {
+        assert(pid != -1);
+        int wstatus;
+        waitpid(pid, &wstatus, 0);
+    }
     uint64_t after = get_time();
     double time = (double)(after - before) / 1000000000;
     OH_LOG_INFO(LOG_APP, "End benchmark %{public}s in %{public}fs", benchmark.c_str(), time);
