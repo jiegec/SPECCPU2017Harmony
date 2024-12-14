@@ -75,10 +75,24 @@ struct Index {
       "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7"
     ]);
 
+    // from data/refrate/reftime
+    let reftime: Map<string, number> = new Map();
+    reftime.set("500.perlbench_r", 1592);
+    reftime.set("502.gcc_r", 1416);
+    reftime.set("505.mcf_r", 1616);
+    reftime.set("520.omnetpp_r", 1312);
+    reftime.set("523.xalancbmk_r", 1056);
+    reftime.set("525.x264_r", 1751);
+    reftime.set("531.deepsjeng_r", 1146);
+    reftime.set("541.leela_r", 1656);
+    reftime.set("548.exchange2_r", 2620);
+    reftime.set("557.xz_r", 1080);
+
     let task: taskpool.Task = new taskpool.Task(findBestCore);
     let core = await taskpool.execute(task);
     this.log += "Found fastest core is " + core + "\n";
 
+    let result: Map<string, number> = new Map();
     for (let benchmark of benchmarks.keys()) {
       this.log += "Run benchmark " + benchmark + "\n";
       hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
@@ -113,8 +127,22 @@ struct Index {
 
         totalTime += time;
       }
-      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s\n";
+      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s, ratio is " + reftime.get(benchmark)! / totalTime + "\n";
+      result.set(benchmark, totalTime);
     }
+
+    // print summary
+    this.log += "Summary:\n";
+    let ratios: number[] = [];
+    let geomean = 1.0;
+    this.log += "=================================================================================\n";
+    for (let benchmark of result.keys()) {
+      let ratio: number = reftime.get(benchmark)! / result.get(benchmark)!;
+      this.log += benchmark + " 1 " + result.get(benchmark) + " " + ratio + " *\n";
+      ratios.push(ratio);
+      geomean *= ratio;
+    }
+    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1/benchmarks.size) + "\n";
   }
 
   build() {
