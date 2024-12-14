@@ -6,11 +6,11 @@
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "Run SPEC CPU 2017 on OpenHarmony/HarmonyOS NEXT"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
+      "value": "SPEC CPU 2017"
     }
   ]
 }
