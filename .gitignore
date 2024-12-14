@@ -10,3 +10,5 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
+# SPEC CPU 2017 benchspec
+/benchspec
