@@ -16,6 +16,7 @@ function findBestCore() {
       core = i;
     }
   }
+  hilog.info(0x0000, 'mainTag', 'Fastest core is %{public}d', core);
 
   return core;
 }
@@ -33,6 +34,13 @@ async function runBenchmarks(context: Context) {
       "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
       "-I./lib diffmail.pl 4 800 10 17 19 300",
       "-I./lib splitmail.pl 6400 12 26 16 100 0"
+  ]);
+  benchmarks.set("502.gcc_r", [
+      "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
+      "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
+      "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
+      "ref32.c -O5 -o ref32.opts-O5.s",
+      "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s"
   ]);
 
   let task: taskpool.Task = new taskpool.Task(findBestCore);
