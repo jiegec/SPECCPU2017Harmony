@@ -115,8 +115,15 @@ struct Index {
         level: zlib.CompressLevel.COMPRESS_LEVEL_DEFAULT_COMPRESSION
       };
       await zlib.decompressFile(filePath, filesDir, options);
-      hilog.info(0x0000, 'mainTag', 'Got files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
 
+      if (benchmark === "525.x264_r") {
+        // generate BuckBunny.yuv
+        hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
+        let task: taskpool.Task = new taskpool.Task(worker, filesDir, "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core);
+        await taskpool.execute(task);
+      }
+
+      hilog.info(0x0000, 'mainTag', 'Got files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
       // run benchmark in background
       let totalTime: number = 0;
       for (let arg of benchmarks.get(benchmark)!) {
