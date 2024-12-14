@@ -1,3 +1,6 @@
+# enable -flto
+$enable_lto = 1;
+
 sub add_target {
     $target = $_[0];
     print(FH "add_library(", $target, " SHARED ", (join " ", @sources) , ")\n");
@@ -5,7 +8,7 @@ sub add_target {
     # add more flags
     $bench_flags = $bench_flags . " " . $bench_cxxflags;
     $bench_flags = $bench_flags . " -fcommon -Wno-error=format-security -Wno-error=reserved-user-defined-literal -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3";
-    if ($target != "502.gcc_r") {
+    if ($target != "502.gcc_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         $bench_flags = $bench_flags . " -flto";
     }
