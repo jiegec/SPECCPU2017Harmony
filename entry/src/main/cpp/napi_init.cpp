@@ -131,12 +131,17 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     const char *envp[1] = {NULL};
 
     OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
-    int res = main(1 + args_length, real_argv.data(), envp);
-    OH_LOG_INFO(LOG_APP, "End benchmark %{public}s", benchmark.c_str());
+    uint64_t before = get_time();
+    main(1 + args_length, real_argv.data(), envp);
+    uint64_t after = get_time();
+    double time = (double)(after - before) / 1000000000;
+    OH_LOG_INFO(LOG_APP, "End benchmark %{public}s in %{public}fs", benchmark.c_str(), time);
 
     dlclose(handle);
 
-    return 0;
+    napi_value ret;
+    napi_create_double(env, time, &ret);
+    return ret;
 }
 
 EXTERN_C_START
