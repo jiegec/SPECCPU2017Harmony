@@ -4,7 +4,11 @@ sub add_target {
 
     # add more flags
     $bench_flags = $bench_flags . " " . $bench_cxxflags;
-    $bench_flags = $bench_flags . " -fcommon -Wno-error=format-security -Wno-error=reserved-user-defined-literal -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3 -flto";
+    $bench_flags = $bench_flags . " -fcommon -Wno-error=format-security -Wno-error=reserved-user-defined-literal -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3";
+    if ($target != "502.gcc_r") {
+        # -flto miscompiles for 502.gcc_r
+        $bench_flags = $bench_flags . " -flto";
+    }
 
     # convert -I flags to target_include_directories
     for $flag (split(" ", $bench_flags)) {
