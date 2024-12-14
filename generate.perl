@@ -20,3 +20,4 @@ for my $benchmark ("500.perlbench_r", "502.gcc_r") {
 
 # patch code
 system("sed -i '1s;^;#include <fcntl.h>\\n;' entry/src/main/cpp/500.perlbench_r/perlio.c");
+system("sed -i 's/exit(\\(.*\\))/return \\1/' entry/src/main/cpp/500.perlbench_r/perlmain.c");

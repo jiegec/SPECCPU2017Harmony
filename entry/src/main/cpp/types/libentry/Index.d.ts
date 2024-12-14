@@ -1,1 +1,1 @@
-export const add: (a: number, b: number) => number;
+export const run: (log: string, benchmark: string, args: string[]) => void;
