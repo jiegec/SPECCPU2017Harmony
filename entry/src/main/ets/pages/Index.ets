@@ -133,7 +133,7 @@ struct Index {
         let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark, arg, core);
         let time: number = await taskpool.execute(task) as number;
         hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
-          arg, time);
+          arg, time.toString());
         this.log += "Finished benchmark " + benchmark + " with args " + arg + " in " + time + "s\n";
 
         totalTime += time;
