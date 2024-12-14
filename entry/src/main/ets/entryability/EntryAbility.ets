@@ -1,6 +1,7 @@
 import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { BusinessError } from '@ohos.base';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
@@ -21,6 +22,20 @@ export default class EntryAbility extends UIAbility {
         return;
       }
       hilog.info(0x0000, 'mainTag', 'Succeeded in loading the content.');
+    });
+
+    // keep screen on
+    windowStage.getMainWindow((err: BusinessError, data: window.Window) => {
+      const errCode: number = err.code;
+      if (errCode == 0) {
+        hilog.info(0x0000, 'mainTag', 'Succeeded in getting main window.');
+        data.setWindowKeepScreenOn(true, (err: BusinessError) => {
+          const errCode: number = err.code;
+          if (errCode == 0) {
+            hilog.info(0x0000, 'mainTag', 'Succeeded in keeping screen on.');
+          }
+        });
+      }
     });
   }
 
