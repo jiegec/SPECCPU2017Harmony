@@ -16,6 +16,13 @@ for my $benchmark ("500.perlbench_r", "502.gcc_r") {
     }
 
     print(FH "target_compile_options(", $benchmark, " PRIVATE ", $bench_flags, ")\n");
+
+    # zip inputs
+    system("rm -rf tmp");
+    system("mkdir -p tmp");
+    system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/all/input/* ./benchspec/CPU/" . $benchmark . "/data/refrate/input/* tmp/");
+    system("cd tmp && zip -r ../entry/src/main/resources/rawfile/" . $benchmark . ".zip *");
+    system("rm -rf tmp");
 }
 
 # patch code

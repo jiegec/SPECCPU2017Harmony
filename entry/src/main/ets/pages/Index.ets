@@ -1,6 +1,16 @@
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import testNapi from 'libentry.so'
+import { zlib } from '@kit.BasicServicesKit';
+import testNapi from 'libentry.so';
 import fs from '@ohos.file.fs';
+import { taskpool } from '@kit.ArkTS';
+
+@Concurrent
+function worker(filesDir: string, benchmark: string) {
+  // run benchmark
+  let log: string = filesDir + "/output.log";
+  testNapi.run(filesDir, log, benchmark, "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1".split(" "));
+  hilog.info(0x0000, 'mainTag', 'Got output: %{public}s', fs.readTextSync(log));
+}
 
 @Entry
 @Component
@@ -14,9 +24,35 @@ struct Index {
           .fontSize(50)
           .fontWeight(FontWeight.Bold)
           .onClick(() => {
-            let file: string = getContext(this).filesDir + "/output.log";
-            testNapi.run(file, "500.perlbench_r", "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1".split(" "));
-            hilog.info(0x0000, 'testTag', 'Got output: %{public}s', fs.readTextSync(file));
+            let benchmark = "500.perlbench_r";
+            getContext().resourceManager.getRawFileContent(benchmark + ".zip", (err, value) => {
+              hilog.info(0x0000, 'mainTag', 'Got raw file content: %{public}s', JSON.stringify(err));
+
+              // each benchmark has its own directory
+              let filesDir = getContext(this).filesDir + "/" + benchmark;
+              if (!fs.accessSync(filesDir)) {
+                fs.mkdirSync(filesDir);
+              }
+
+              // copy rawfile to files dir
+              let filePath = filesDir + "/" + benchmark + ".zip";
+              let file = fs.openSync(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+              fs.writeSync(file.fd, value.buffer);
+              fs.closeSync(file);
+
+              // extract to files dir
+              let options: zlib.Options = {
+                level: zlib.CompressLevel.COMPRESS_LEVEL_DEFAULT_COMPRESSION
+              };
+              zlib.decompressFile(filePath, filesDir, options, (err) => {
+                hilog.info(0x0000, 'mainTag', 'Got zlib decompress result: %{public}s', JSON.stringify(err));
+                hilog.info(0x0000, 'mainTag', 'List files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
+
+                // run benchmark in background
+                let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark);
+                taskpool.execute(task);
+              });
+            });
           })
       }
       .width('100%')
