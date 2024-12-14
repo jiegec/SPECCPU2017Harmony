@@ -6,7 +6,7 @@ for my $benchmark ("500.perlbench_r", "502.gcc_r") {
     print(FH "add_library(", $benchmark, " SHARED ", (join " ", @sources) , ")\n");
 
     # add more flags
-    $bench_flags = $bench_flags . " -Wno-error=format-security" . " -DSPEC" . " -DSPEC_LP64" . " -DSPEC_LINUX_AARCH64" . " -DSPEC_NO_USE_STDIO_PTR" . " -DSPEC_NO_USE_STDIO_BASE";
+    $bench_flags = $bench_flags . " -Wno-error=format-security" . " -DSPEC" . " -DSPEC_LP64" . " -DSPEC_LINUX_AARCH64" . " -DSPEC_NO_USE_STDIO_PTR" . " -DSPEC_NO_USE_STDIO_BASE" . " -O3";
 
     # convert -I flags to target_include_directories
     for my $flag (split(" ", $bench_flags)) {
@@ -21,6 +21,7 @@ for my $benchmark ("500.perlbench_r", "502.gcc_r") {
     system("rm -rf tmp");
     system("mkdir -p tmp");
     system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/all/input/* ./benchspec/CPU/" . $benchmark . "/data/refrate/input/* tmp/");
+    system("rm -f entry/src/main/resources/rawfile/" . $benchmark . ".zip");
     system("cd tmp && zip -r ../entry/src/main/resources/rawfile/" . $benchmark . ".zip *");
     system("rm -rf tmp");
 }
