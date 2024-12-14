@@ -3,6 +3,7 @@ import { zlib } from '@kit.BasicServicesKit';
 import testNapi from 'libentry.so';
 import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
+import { pasteboard } from '@kit.BasicServicesKit';
 
 @Concurrent
 function findBestCore() {
@@ -127,7 +128,8 @@ struct Index {
 
         totalTime += time;
       }
-      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s, ratio is " + reftime.get(benchmark)! / totalTime + "\n";
+      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s, ratio is " + reftime.get(benchmark)!
+      / totalTime + "\n";
       result.set(benchmark, totalTime);
     }
 
@@ -137,29 +139,44 @@ struct Index {
     let geomean = 1.0;
     this.log += "=================================================================================\n";
     for (let benchmark of result.keys()) {
-      let ratio: number = reftime.get(benchmark)! / result.get(benchmark)!;
+      let ratio: number = reftime.get(benchmark)!
+      / result.get(benchmark)!;
       this.log += benchmark + " 1 " + result.get(benchmark) + " " + ratio + " *\n";
       ratios.push(ratio);
       geomean *= ratio;
     }
-    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1/benchmarks.size) + "\n";
+    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1 / benchmarks.size) + "\n";
   }
 
   build() {
     Row() {
       Column() {
-        Text("Run")
-          .fontSize(50)
-          .fontWeight(FontWeight.Bold)
-          .onClick(() => {
-            this.runBenchmarks();
-          })
         Scroll() {
           Text(this.log)
             .fontSize(10)
             .fontFamily('monospace')
             .width('100%')
         }
+
+        Text("Run")
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .onClick(() => {
+            this.runBenchmarks();
+          })
+        Text("Copy")
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .onClick(() => {
+            let pasteData: pasteboard.PasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, this.log);
+            let systemPasteboard: pasteboard.SystemPasteboard = pasteboard.getSystemPasteboard();
+            systemPasteboard.setData(pasteData, (err, data) => {
+              if (err) {
+                hilog.info(0x0000, 'mainTag', 'Failed to set pastboard: %{public}s', JSON.stringify(err));
+                return;
+              }
+            });
+          })
       }
       .width('100%')
     }
