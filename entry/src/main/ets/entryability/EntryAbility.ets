@@ -18,21 +18,21 @@ export default class EntryAbility extends UIAbility {
 
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
-        hilog.error(0x0000, 'mainTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
+        hilog.error(0x0000, 'mainTag', 'Failed to load the content: %{public}s', JSON.stringify(err) ?? '');
         return;
       }
-      hilog.info(0x0000, 'mainTag', 'Succeeded in loading the content.');
+      hilog.info(0x0000, 'mainTag', 'Succeeded in loading the content');
     });
 
     // keep screen on
     windowStage.getMainWindow((err: BusinessError, data: window.Window) => {
       const errCode: number = err.code;
       if (errCode == 0) {
-        hilog.info(0x0000, 'mainTag', 'Succeeded in getting main window.');
+        hilog.info(0x0000, 'mainTag', 'Succeeded in getting main window');
         data.setWindowKeepScreenOn(true, (err: BusinessError) => {
           const errCode: number = err.code;
           if (errCode == 0) {
-            hilog.info(0x0000, 'mainTag', 'Succeeded in keeping screen on.');
+            hilog.info(0x0000, 'mainTag', 'Succeeded in keeping screen on');
           }
         });
       }

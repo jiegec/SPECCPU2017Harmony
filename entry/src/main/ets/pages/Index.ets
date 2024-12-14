@@ -141,7 +141,7 @@ struct Index {
       let ratio: number = reftime.get(benchmark)!
       / totalTime;
       this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio;
-      hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}ss', benchmark,
+      hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s', benchmark,
         totalTime.toString(), ratio.toString());
       result.set(benchmark, totalTime);
     }
