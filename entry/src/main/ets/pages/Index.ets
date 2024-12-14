@@ -132,12 +132,17 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s with %{public}s', benchmark, arg);
         let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark, arg, core);
         let time: number = await taskpool.execute(task) as number;
+        hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
+          arg, time);
         this.log += "Finished benchmark " + benchmark + " with args " + arg + " in " + time + "s\n";
 
         totalTime += time;
       }
-      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s, ratio is " + reftime.get(benchmark)!
-      / totalTime + "\n";
+      let ratio: number = reftime.get(benchmark)!
+      / totalTime;
+      this.log += "Finished benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio;
+      hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s in %{public}ss, ratio is %{public}ss', benchmark,
+        totalTime, ratio);
       result.set(benchmark, totalTime);
     }
 
