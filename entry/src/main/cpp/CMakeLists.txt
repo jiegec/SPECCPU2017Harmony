@@ -9,3 +9,6 @@ include_directories(${NATIVERENDER_ROOT_PATH}
 
 add_library(entry SHARED napi_init.cpp)
 target_link_libraries(entry PUBLIC libace_napi.z.so)
+
+add_subdirectory(500.perlbench_r)
+add_subdirectory(502.gcc_r)
