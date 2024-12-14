@@ -6,12 +6,12 @@ import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
 
 @Concurrent
-function findBestCore() {
+function findBestCore(): number {
   // find core with maximum clock frequency
   let core = 0;
   let max_freq = 0;
   for (let i = 0; i < 12; i++) {
-    let freq = testNapi.clock(i);
+    let freq: number = testNapi.clock(i);
     if (freq > max_freq) {
       max_freq = freq;
       core = i;
@@ -23,7 +23,7 @@ function findBestCore() {
 }
 
 @Concurrent
-function worker(filesDir: string, benchmark: string, args: string, core: number) {
+function worker(filesDir: string, benchmark: string, args: string, core: number): number {
   // run benchmark
   let log: string = filesDir + "/output.log";
   return testNapi.run(filesDir, log, benchmark, args.split(" "), core);
