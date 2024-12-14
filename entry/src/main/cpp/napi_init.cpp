@@ -3,19 +3,67 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <sched.h>
+#include <assert.h>
+#include <sys/time.h>
 
-#include "hilog/log.h" 
-#define LOG_DOMAIN 0x0000
+#include "hilog/log.h"
+#undef LOG_TAG
 #define LOG_TAG "mainTag"
 
 static std::string get_str(napi_env env, napi_value value) {
     size_t size = 0;
-    napi_get_value_string_utf8(env, value, NULL, 0, &size);
+    assert(napi_get_value_string_utf8(env, value, NULL, 0, &size) == napi_ok);
     std::vector<char> buffer(size + 1);
 
-    napi_get_value_string_utf8(env, value, buffer.data(), buffer.size(), &size);
+    assert(napi_get_value_string_utf8(env, value, buffer.data(), buffer.size(), &size) == napi_ok);
     std::string s(buffer.data(), size);
     return s;
+}
+
+uint64_t get_time() {
+    struct timeval tv = {};
+    gettimeofday(&tv, nullptr);
+    return (uint64_t)tv.tv_sec * 1000000000 + (uint64_t)tv.tv_usec * 1000;
+}
+
+// measure clock frequency
+// parameter
+// 1: core index
+static napi_value Clock(napi_env env, napi_callback_info info) {
+    // get args
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    // set cpu affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    int core;
+    napi_get_value_int32(env, args[0], &core);
+    CPU_SET(core, &cpuset);
+    assert(sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0);
+    OH_LOG_INFO(LOG_APP, "Pin to cpu %{public}d", core);
+
+    int n = 100000;
+    uint64_t before = get_time();
+    // learned from lmbench lat_mem_rd
+#define FIVE(X) X X X X X
+#define TEN(X) FIVE(X) FIVE(X)
+#define FIFTY(X) TEN(X) TEN(X) TEN(X) TEN(X) TEN(X)
+#define HUNDRED(X) FIFTY(X) FIFTY(X)
+#define THOUSAND(X) HUNDRED(TEN(X))
+
+    for (int i = 0; i < n; i++) {
+        asm volatile(".align 4\n" THOUSAND("add x1, x1, x1\n") : : : "x1");
+    }
+    uint64_t after = get_time();
+
+    double freq = (double)n * 1000 / (double)(after - before);
+    OH_LOG_INFO(LOG_APP, "Clock frequency is %{public}f", freq);
+    napi_value ret;
+    napi_create_double(env, freq, &ret);
+    return ret;
 }
 
 // parameters:
@@ -23,11 +71,21 @@ static std::string get_str(napi_env env, napi_value value) {
 // 2: path to log file
 // 3: benchmark name
 // 4: benchmark args
+// 5: core index
 static napi_value Run(napi_env env, napi_callback_info info) {
     // get args
-    size_t argc = 4;
-    napi_value args[4] = {nullptr};
+    size_t argc = 5;
+    napi_value args[5] = {nullptr};
     napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    // set cpu affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    int core;
+    napi_get_value_int32(env, args[4], &core);
+    CPU_SET(core, &cpuset);
+    assert(sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0);
+    OH_LOG_INFO(LOG_APP, "Pin to cpu %{public}d", core);
 
     std::string cwd = get_str(env, args[0]);
     OH_LOG_INFO(LOG_APP, "Change cwd to %{public}s", cwd.c_str());
@@ -83,7 +141,8 @@ static napi_value Run(napi_env env, napi_callback_info info) {
 
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports) {
-    napi_property_descriptor desc[] = {{"run", nullptr, Run, nullptr, nullptr, nullptr, napi_default, nullptr}};
+    napi_property_descriptor desc[] = {{"run", nullptr, Run, nullptr, nullptr, nullptr, napi_default, nullptr},
+                                       {"clock", nullptr, Clock, nullptr, nullptr, nullptr, napi_default, nullptr}};
     napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
     return exports;
 }

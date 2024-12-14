@@ -8,7 +8,19 @@ import { taskpool } from '@kit.ArkTS';
 function worker(filesDir: string, benchmark: string) {
   // run benchmark
   let log: string = filesDir + "/output.log";
-  testNapi.run(filesDir, log, benchmark, "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1".split(" "));
+
+  // find core with maximum clock frequency
+  let core = 0;
+  let max_freq = 0;
+  for (let i = 0;i < 12;i++) {
+    let freq = testNapi.clock(i);
+    if (freq > max_freq) {
+      max_freq = freq;
+      core = i;
+    }
+  }
+
+  testNapi.run(filesDir, log, benchmark, "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1".split(" "), core);
   hilog.info(0x0000, 'mainTag', 'Got output: %{public}s', fs.readTextSync(log));
 }
 
@@ -26,8 +38,6 @@ struct Index {
           .onClick(() => {
             let benchmark = "500.perlbench_r";
             getContext().resourceManager.getRawFileContent(benchmark + ".zip", (err, value) => {
-              hilog.info(0x0000, 'mainTag', 'Got raw file content: %{public}s', JSON.stringify(err));
-
               // each benchmark has its own directory
               let filesDir = getContext(this).filesDir + "/" + benchmark;
               if (!fs.accessSync(filesDir)) {
@@ -45,8 +55,7 @@ struct Index {
                 level: zlib.CompressLevel.COMPRESS_LEVEL_DEFAULT_COMPRESSION
               };
               zlib.decompressFile(filePath, filesDir, options, (err) => {
-                hilog.info(0x0000, 'mainTag', 'Got zlib decompress result: %{public}s', JSON.stringify(err));
-                hilog.info(0x0000, 'mainTag', 'List files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
+                hilog.info(0x0000, 'mainTag', 'Got files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
 
                 // run benchmark in background
                 let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark);
