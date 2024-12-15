@@ -23,8 +23,9 @@ add_subdirectory(557.xz_r)
 
 # need fortran for 548.exchange2_r
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-        set(CMAKE_Fortran_COMPILER "flang-new-16")
-        set(CMAKE_Fortran_FLAGS "-target aarch64-linux-ohos -fuse-ld=lld -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../flang -nostdlib -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../command-line-tools/sdk/default/openharmony/native/sysroot/usr/lib/aarch64-linux-ohos -lc -lm -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../command-line-tools/sdk/default/openharmony/native/llvm/lib/clang/15.0.4/lib/aarch64-linux-ohos/ -lclang_rt.builtins -Wl,--whole-archive -lFortran_main -Wl,--no-whole-archive")
+        set(CMAKE_Fortran_COMPILER_FORCED TRUE)
+        set(CMAKE_Fortran_COMPILER "flang-new-20")
+        set(CMAKE_Fortran_FLAGS "-target aarch64-linux-ohos -fuse-ld=lld -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../flang -nostdlib -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../command-line-tools/sdk/default/openharmony/native/sysroot/usr/lib/aarch64-linux-ohos -lc -lm -L ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../command-line-tools/sdk/default/openharmony/native/llvm/lib/clang/15.0.4/lib/aarch64-linux-ohos/ -lclang_rt.builtins -lFortranRuntime -lFortranDecimal")
         enable_language(Fortran)
         add_subdirectory(548.exchange2_r)
 endif()

@@ -91,6 +91,7 @@ struct Index {
     reftime.set("548.exchange2_r", 2620);
     reftime.set("557.xz_r", 1080);
 
+    this.log += "Finding fastest core\n";
     let task: taskpool.Task = new taskpool.Task(findBestCore);
     let core = await taskpool.execute(task);
     this.log += "Found fastest core is " + core + "\n";

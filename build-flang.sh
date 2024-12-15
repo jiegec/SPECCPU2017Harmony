@@ -5,7 +5,10 @@ set -x -e
 mkdir -p flang
 DST=$PWD/flang
 cd $HOME/llvm-project
-git checkout llvmorg-17.0.6
+git checkout llvmorg-19.1.0
+git reset llvmorg-19.1.0 --hard
+# fix missing include path
+git cherry-pick b9198a17315757dc0c2e831c9df0498dcab55285
 
 cd libunwind
 rm -rf build
@@ -44,7 +47,6 @@ cmake .. -G Ninja \
 	-DCMAKE_CXX_COMPILER="clang++"
 ninja
 cp libFortranRuntime.a $DST/
-cp FortranMain/libFortran_main.a $DST/
 cd ../../../
 
 ls -al $DST
