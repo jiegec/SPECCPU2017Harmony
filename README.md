@@ -2,7 +2,7 @@
 
 Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT.
 
-It currently supports running SPEC CPU 2017 integer rate-1 (without 528.exchange2_r).
+It currently supports running SPEC CPU 2017 integer rate-1 (528.exchange2_r requires flang).
 
 How to install:
 

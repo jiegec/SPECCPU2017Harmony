@@ -11,5 +11,6 @@
 **/.test
 /.appanalyzer
 /.cache
+/flang
 # SPEC CPU 2017 benchspec
 /benchspec

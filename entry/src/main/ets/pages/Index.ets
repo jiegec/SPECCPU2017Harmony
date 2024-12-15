@@ -69,7 +69,9 @@ struct Index {
     benchmarks.set("541.leela_r", [
       "ref.sgf"
     ]);
-    // TODO: 548.exchange2_r
+    benchmarks.set("548.exchange2_r", [
+      "6",
+    ]);
     benchmarks.set("557.xz_r", [
       "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
       "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
