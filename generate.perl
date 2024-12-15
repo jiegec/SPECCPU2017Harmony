@@ -14,7 +14,9 @@ sub add_target {
     $bench_flags = $bench_flags . " " . $bench_cflags;
     $bench_flags = $bench_flags . " " . $bench_cxxflags;
     $bench_flags = $bench_flags . " " . $bench_fflags;
+    # drop unwanted preprocessor flags
     $bench_fppflags =~ s{-w -m literal-single.pm -m c-comment.pm}{};
+    $bench_fppflags =~ s{-w -m literal.pm}{};
     $bench_flags = $bench_flags . " " . $bench_fppflags;
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
@@ -87,5 +89,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
 # fix compilation
 system("sed -i '1s;^;#include <fcntl.h>\\n;' entry/src/main/cpp/500.perlbench_r/perlio.c");
 system("sed -i 's/#if defined __FreeBSD__/#include <stdio.h>\\n#if 1/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
+system("sed -i 's/#if defined.* && !defined.*/#if 1/' entry/src/main/cpp/521.wrf_r/netcdf/include/ncfortran.h");
+system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/misc.c");
+system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/type.c");
+system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/reg_parse.c");
 system("sed -i 's/^#ifdef\$/#ifdef SPEC/' entry/src/main/cpp/527.cam4_r/ESMF_AlarmMod.F90");
 system("sed -i 's/#if defined.* && !defined.*/#if 1/' entry/src/main/cpp/527.cam4_r/netcdf/include/ncfortran.h");
