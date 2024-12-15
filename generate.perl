@@ -76,6 +76,11 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
         add_target($benchmark);
     }
 
+    if ($benchmark == "549.fotonik3d_r") {
+        # extract OBJ.dat.xz for input
+        system("xz -d -k ./benchspec/CPU/549.fotonik3d_r/data/refrate/input/OBJ.dat.xz");
+    }
+
     # zip inputs
     system("rm -rf tmp");
     system("mkdir -p tmp");
