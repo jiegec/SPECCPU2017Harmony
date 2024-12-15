@@ -8,3 +8,4 @@ export TOOL_HOME=/Applications/DevEco-Studio.app/Contents
 export PATH=$TOOL_HOME/sdk/default/openharmony/toolchains:$PATH
 hdc file send $1 /data/local/tmp
 hdc shell bm install -p /data/local/tmp/$1
+hdc shell aa start -a EntryAbility -b $(jq ".app.bundleName" AppScope/app.json5)
