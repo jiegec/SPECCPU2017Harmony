@@ -21,6 +21,7 @@ target_compile_definitions(entry PRIVATE "-DFORTRAN_COMPILER_VERSION=${CMAKE_For
 target_link_libraries(entry PUBLIC libace_napi.z.so)
 target_link_libraries(entry PUBLIC libhilog_ndk.z.so)
 
+# int
 add_subdirectory(500.perlbench_r)
 add_subdirectory(502.gcc_r)
 add_subdirectory(505.mcf_r)
@@ -29,8 +30,28 @@ add_subdirectory(523.xalancbmk_r)
 add_subdirectory(525.x264_r)
 add_subdirectory(531.deepsjeng_r)
 add_subdirectory(541.leela_r)
-# need fortran for 548.exchange2_r
+add_subdirectory(557.xz_r)
+
+# need fortran
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         add_subdirectory(548.exchange2_r)
 endif()
-add_subdirectory(557.xz_r)
+
+# fp
+add_subdirectory(508.namd_r)
+add_subdirectory(510.parest_r)
+add_subdirectory(511.povray_r)
+add_subdirectory(519.lbm_r)
+add_subdirectory(526.blender_r)
+add_subdirectory(527.cam4_r)
+add_subdirectory(538.imagick_r)
+add_subdirectory(544.nab_r)
+add_subdirectory(549.fotonik3d_r)
+
+# need fortran
+if (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+        add_subdirectory(503.bwaves_r)
+        add_subdirectory(507.cactuBSSN_r)
+        add_subdirectory(521.wrf_r)
+        add_subdirectory(554.roms_r)
+endif()
