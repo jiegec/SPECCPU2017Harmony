@@ -16,7 +16,7 @@ How to build on macOS (missing 548.exchange2_r support):
 
 How to build on Linux:
 
-1. Install lld-20 and flang-20
+1. Install lld-20 and flang-20 from [LLVM APT](https://apt.llvm.org/)
 2. Copy the whole benchspec folder from SPEC CPU 2017 installation to the root folder of this project
 3. Execute `perl generate.perl` under the root folder of this project
 4. Clone llvm-project to $HOME/llvm-project
