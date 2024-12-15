@@ -6,5 +6,5 @@ Due to fluctuations, the best performance without putting the phone in a refrige
 
 C/C++ code is compiled with current clang version from HarmonyOS SDK. Fortran code is compiled with latest flang-20 version from LLVM APT. Optimization flags:
 
-- all (except 502.gcc_r due to miscompilation): -O3 -flto -march=armv8.a+sve
-- 502.gcc_r: -O3 -march=armv8.a+sve
+- 502.gcc_r/510.parest_r/526.blender_r: -O3 -march=armv8.a+sve
+- others: -O3 -flto -march=armv8.a+sve
