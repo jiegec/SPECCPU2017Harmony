@@ -35,6 +35,8 @@ struct Index {
   @State log: string = '';
 
   async runBenchmarks(filter: string) {
+    this.log += testNapi.info() + "\n";
+
     let context = getContext(this);
     let benchmarks: Map<string, string[]> = new Map();
     benchmarks.set("500.perlbench_r", [
