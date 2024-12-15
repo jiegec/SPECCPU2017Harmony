@@ -7,14 +7,14 @@ sub add_target {
 
     # add more flags
     $bench_flags = $bench_flags . " " . $bench_cxxflags;
-    $bench_flags = $bench_flags . " -fcommon -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3";
+    $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -O3";
     if ($target != "502.gcc_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         $bench_flags = $bench_flags . " -flto";
     }
     if ($target != "548.exchange2_r") {
-        # flang does not support -Wno-error
-        $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal";
+        # flang does not support -Wno-error and -fcommon
+        $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
 
     # convert -I flags to target_include_directories
