@@ -21,7 +21,7 @@ sub add_target {
         # -flto ICE for 510.parest_r
         $bench_flags = $bench_flags . " -flto";
     }
-    if ($target != "527.cam4_r" and $target != "548.exchange2_r") {
+    if ($target != "503.bwaves_r" and $target != "521.wrf_r" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
