@@ -247,7 +247,7 @@ struct Index {
       }
       
       if (failed) {
-        break;
+        continue;
       }
 
       let ratio: number = reftime.get(benchmark)!
