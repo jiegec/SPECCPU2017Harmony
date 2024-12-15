@@ -34,7 +34,7 @@ function worker(filesDir: string, benchmark: string, args: string, core: number)
 struct Index {
   @State log: string = '';
 
-  async runBenchmarks() {
+  async runBenchmarks(filter: string) {
     let context = getContext(this);
     let benchmarks: Map<string, string[]> = new Map();
     benchmarks.set("500.perlbench_r", [
@@ -96,7 +96,15 @@ struct Index {
     this.log += "Found fastest core is " + core + "\n";
 
     let result: Map<string, number> = new Map();
+    let filtered: string[] = Array.from(benchmarks.keys());
     for (let benchmark of benchmarks.keys()) {
+      if (benchmark === filter) {
+        filtered = [filter];
+        break;
+      }
+    }
+
+    for (let benchmark of filtered) {
       this.log += "Run benchmark " + benchmark + "\n";
       hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
       let value = await context.resourceManager.getRawFileContent(benchmark + ".zip");
@@ -163,6 +171,24 @@ struct Index {
     this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1 / result.size) + "\n";
   }
 
+  @Builder
+  benchmarkMenu() {
+    Menu() {
+      MenuItem({ content: "Run All" })
+        .onClick(() => {
+          this.runBenchmarks("");
+        })
+      MenuItem({ content: "502.gcc_r" })
+        .onClick(() => {
+          this.runBenchmarks("502.gcc_r");
+        })
+      MenuItem({ content: "548.exchange2_r" })
+        .onClick(() => {
+          this.runBenchmarks("548.exchange2_r");
+        })
+    }
+  }
+
   build() {
     Row() {
       Column() {
@@ -176,9 +202,7 @@ struct Index {
         Text("Run Benchmarks")
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
-          .onClick(() => {
-            this.runBenchmarks();
-          })
+          .bindMenu(this.benchmarkMenu)
         Text("Copy Result")
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
