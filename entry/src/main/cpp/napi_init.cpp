@@ -70,22 +70,24 @@ static napi_value Clock(napi_env env, napi_callback_info info) {
 }
 
 // parameters:
-// 1: cwd
-// 2: path to log file
-// 3: benchmark name
-// 4: benchmark args
-// 5: core index
+// 0: cwd
+// 1: path to stdin
+// 2: path to stdout
+// 3: path to stderr
+// 4: benchmark name
+// 5: benchmark args
+// 6: core index
 static napi_value Run(napi_env env, napi_callback_info info) {
   // get args
-  size_t argc = 5;
-  napi_value args[5] = {nullptr};
+  size_t argc = 7;
+  napi_value args[7] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
   // set cpu affinity
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   int core;
-  napi_get_value_int32(env, args[4], &core);
+  napi_get_value_int32(env, args[6], &core);
   CPU_SET(core, &cpuset);
   assert(sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0);
   OH_LOG_INFO(LOG_APP, "Pin to cpu %{public}d", core);
@@ -96,14 +98,14 @@ static napi_value Run(napi_env env, napi_callback_info info) {
 
   // https://developer.huawei.com/consumer/cn/doc/harmonyos-faqs/faqs-ndk-16-V5
   // redirect stdout/stderr to file
-  std::string log_file = get_str(env, args[1]);
+  std::string stdin_file = get_str(env, args[1]);
+  std::string stdout_file = get_str(env, args[2]);
+  std::string stderr_file = get_str(env, args[3]);
 
-  OH_LOG_INFO(LOG_APP, "Redirect stdout/stderr to %{public}s",
-              log_file.c_str());
-  freopen(log_file.c_str(), "w+", stdout);
-  freopen(log_file.c_str(), "w+", stderr);
-
-  std::string benchmark = get_str(env, args[2]);
+  OH_LOG_INFO(LOG_APP, "Redirect stdin to %{public}s", stdin_file.c_str());
+  OH_LOG_INFO(LOG_APP, "Redirect stdout to %{public}s", stdout_file.c_str());
+  OH_LOG_INFO(LOG_APP, "Redirect stderr to %{public}s", stderr_file.c_str());
+  std::string benchmark = get_str(env, args[4]);
 
   // load benchmark main from library
   int (*main)(int argc, const char **argv, const char **envp);
@@ -126,10 +128,10 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   std::vector<std::string> argv;
   argv.push_back(benchmark);
   uint32_t args_length;
-  napi_get_array_length(env, args[3], &args_length);
+  napi_get_array_length(env, args[5], &args_length);
   for (uint32_t i = 0; i < args_length; i++) {
     napi_value element;
-    napi_get_element(env, args[3], i, &element);
+    napi_get_element(env, args[5], i, &element);
 
     std::string arg = get_str(env, element);
     argv.push_back(arg);
@@ -148,6 +150,12 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   uint64_t before = get_time();
   pid_t pid = fork();
   if (pid == 0) {
+    if (stdin_file.size() > 0) {
+      freopen(stdin_file.c_str(), "r", stdin);
+    }
+    freopen(stdout_file.c_str(), "w+", stdout);
+    freopen(stderr_file.c_str(), "w+", stderr);
+
     int status = main(1 + args_length, real_argv.data(), envp);
     exit(status);
   } else {

@@ -23,10 +23,11 @@ function findBestCore(): number {
 }
 
 @Concurrent
-function worker(filesDir: string, benchmark: string, args: string, core: number): number {
+function worker(filesDir: string, stdinFile: string, benchmark: string, args: string[], core: number): number {
   // run benchmark
-  let log: string = filesDir + "/output.log";
-  return testNapi.run(filesDir, log, benchmark, args.split(" "), core);
+  let stdoutFile: string = filesDir + "/stdout.log";
+  let stderrFile: string = filesDir + "/stderr.log";
+  return testNapi.run(filesDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
 }
 
 let int_rate = [
@@ -112,7 +113,6 @@ struct Index {
 
     // fp rate
     benchmarks.set("503.bwaves_r", [
-      // TODO: input redirection
       "bwaves_1 < bwaves_1.in",
       "bwaves_2 < bwaves_2.in",
       "bwaves_3 < bwaves_3.in",
@@ -152,7 +152,6 @@ struct Index {
       "",
     ]);
     benchmarks.set("554.roms_r", [
-      // TODO: input redirection
       "< ocean_benchmark2.in.x",
     ]);
 
@@ -218,7 +217,7 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, filesDir, "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core);
+          new taskpool.Task(worker, filesDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core);
         await taskpool.execute(task);
       }
 
@@ -229,7 +228,15 @@ struct Index {
       for (let arg of benchmarks.get(benchmark)!) {
         this.log += "Run benchmark " + benchmark + " with args " + arg + "\n";
         hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s with %{public}s', benchmark, arg);
-        let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark, arg, core);
+        let args = arg.split(" ");
+        let stdinFile = "";
+        if (args.length >= 2 && args[args.length-2] === "<") {
+          // handle input redirection
+          stdinFile = args.pop()!;
+          args.pop();
+        }
+
+        let task: taskpool.Task = new taskpool.Task(worker, filesDir, stdinFile, benchmark, args, core);
         let time: number = await taskpool.execute(task) as number;
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
