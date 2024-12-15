@@ -1,6 +1,6 @@
 #!/bin/sh
 # build the project on macOS
-# assume deveco studio  downloaded from:
+# assume deveco studio is downloaded from:
 # https://developer.huawei.com/consumer/cn/download/
 # and extracted to /Applications/DevEco-Studio.app
 export TOOL_HOME=/Applications/DevEco-Studio.app/Contents
