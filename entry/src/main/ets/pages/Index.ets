@@ -130,6 +130,7 @@ struct Index {
       if (benchmark === "525.x264_r") {
         // generate BuckBunny.yuv
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
+        this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
           new taskpool.Task(worker, filesDir, "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core);
         await taskpool.execute(task);
@@ -165,7 +166,7 @@ struct Index {
 
       let ratio: number = reftime.get(benchmark)!
       / totalTime;
-      this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio;
+      this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio + "\n";
       hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s', benchmark,
         totalTime.toString(), ratio.toString());
       result.set(benchmark, totalTime);
