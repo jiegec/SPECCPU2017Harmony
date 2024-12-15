@@ -110,6 +110,13 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     library_name += benchmark;
     library_name += ".so";
     void *handle = dlopen(library_name.c_str(), RTLD_LAZY);
+    if (!handle) {
+        // missing shared library
+        // return -1.0
+        napi_value ret;
+        napi_create_double(env, -1.0, &ret);
+        return ret;
+    }
 
     main = (int (*)(int argc, const char **argv, const char **envp))dlsym(handle, "main");
     std::vector<std::string> argv;

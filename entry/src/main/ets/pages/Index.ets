@@ -137,17 +137,31 @@ struct Index {
       hilog.info(0x0000, 'mainTag', 'Got files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
       // run benchmark in background
       let totalTime: number = 0;
+      let failed: boolean = false;
       for (let arg of benchmarks.get(benchmark)!) {
         this.log += "Run benchmark " + benchmark + " with args " + arg + "\n";
         hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s with %{public}s', benchmark, arg);
         let task: taskpool.Task = new taskpool.Task(worker, filesDir, benchmark, arg, core);
         let time: number = await taskpool.execute(task) as number;
+        if (time < 0) {
+          hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
+            arg);
+          this.log += "Failed benchmark " + benchmark + " with args " + arg + "\n";
+          failed = true;
+          break;
+        }
+
         hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
           arg, time.toString());
         this.log += "Finished benchmark " + benchmark + " with args " + arg + " in " + time + "s\n";
 
         totalTime += time;
       }
+      
+      if (failed) {
+        break;
+      }
+
       let ratio: number = reftime.get(benchmark)!
       / totalTime;
       this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio;
