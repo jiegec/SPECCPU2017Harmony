@@ -16,9 +16,10 @@ sub add_target {
     $bench_flags = $bench_flags . " " . $bench_fflags;
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
-    if ($target != "502.gcc_r" and $target != "510.parest_r" and $enable_lto) {
+    if ($target != "502.gcc_r" and $target != "510.parest_r" and $target != "526.blender_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         # -flto ICE for 510.parest_r
+        # -flto too slow for 526.blender_r
         $bench_flags = $bench_flags . " -flto";
     }
     if ($target != "503.bwaves_r" and $target != "521.wrf_r" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
