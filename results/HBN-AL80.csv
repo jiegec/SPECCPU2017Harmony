@@ -4,7 +4,7 @@ benchmark,time
 505.mcf_r,399
 520.omnetpp_r,525
 523.xalancbmk_r,341
-525.x264_r,192
+525.x264_r,185
 531.deepsjeng_r,381
 541.leela_r,699
 548.exchange2_r,239
