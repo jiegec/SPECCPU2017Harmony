@@ -14,6 +14,8 @@ sub add_target {
     $bench_flags = $bench_flags . " " . $bench_cflags;
     $bench_flags = $bench_flags . " " . $bench_cxxflags;
     $bench_flags = $bench_flags . " " . $bench_fflags;
+    $bench_fppflags =~ s{-w -m literal-single.pm -m c-comment.pm}{};
+    $bench_flags = $bench_flags . " " . $bench_fppflags;
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
     if ($target != "502.gcc_r" and $target != "510.parest_r" and $target != "526.blender_r" and $enable_lto) {
@@ -25,6 +27,10 @@ sub add_target {
     if ($target != "503.bwaves_r" and $target != "521.wrf_r" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
+    }
+    if ($target == "554.roms_r") {
+        # fix compilation
+        $bench_flags = $bench_flags . " -DNDEBUG";
     }
 
     # convert -I flags to target_include_directories
@@ -38,7 +44,7 @@ sub add_target {
 }
 
 for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "523.xalancbmk_r", "525.x264_r", "531.deepsjeng_r", "541.leela_r", "548.exchange2_r", "557.xz_r", "503.bwaves_r", "507.cactuBSSN_r", "508.namd_r", "510.parest_r", "511.povray_r", "519.lbm_r", "521.wrf_r", "526.blender_r", "527.cam4_r", "538.imagick_r", "544.nab_r", "549.fotonik3d_r", "554.roms_r") {
-    $bench_flags = "";
+    $bench_flags = $bench_cflags = $bench_cxxflags = $bench_fflags = $bench_fppflags = "";
     require "./benchspec/CPU/" . $benchmark . "/Spec/object.pm";
     mkdir("entry/src/main/cpp/" . $benchmark);
     system("cp -arv ./benchspec/CPU/" . $benchmark . "/src/* entry/src/main/cpp/" . $benchmark . "/");
