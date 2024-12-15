@@ -154,6 +154,15 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     assert(pid != -1);
     int wstatus;
     waitpid(pid, &wstatus, 0);
+    if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
+      // failed
+      dlclose(handle);
+
+      // return -1.0
+      napi_value ret;
+      napi_create_double(env, -1.0, &ret);
+      return ret;
+    }
   }
   uint64_t after = get_time();
   double time = (double)(after - before) / 1000000000;
