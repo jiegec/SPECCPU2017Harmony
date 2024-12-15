@@ -148,8 +148,8 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   uint64_t before = get_time();
   pid_t pid = fork();
   if (pid == 0) {
-    main(1 + args_length, real_argv.data(), envp);
-    exit(0);
+    int status = main(1 + args_length, real_argv.data(), envp);
+    exit(status);
   } else {
     assert(pid != -1);
     int wstatus;
