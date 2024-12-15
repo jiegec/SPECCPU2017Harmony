@@ -18,7 +18,7 @@ How to build on Linux:
 2. Execute `perl generate.perl` under the root folder of this project
 3. Clone llvm-project to $HOME/llvm-project
 4. Execute `./build-flang.sh` under the root folder of this project
-5. Copy code signing config from macOS
+5. Copy code signing config (including build-profile.json5 and ~/.ohos/config) from macOS
 6. Execute `./build-linux.sh` under the root folder of this project
 
 To install the application to phone: either use DevEco Studio, or use `push.sh`.

@@ -178,14 +178,23 @@ struct Index {
         .onClick(() => {
           this.runBenchmarks("");
         })
-      MenuItem({ content: "502.gcc_r" })
-        .onClick(() => {
-          this.runBenchmarks("502.gcc_r");
-        })
-      MenuItem({ content: "548.exchange2_r" })
-        .onClick(() => {
-          this.runBenchmarks("548.exchange2_r");
-        })
+      ForEach([
+        "500.perlbench_r",
+        "502.gcc_r",
+        "505.mcf_r",
+        "520.omnetpp_r",
+        "523.xalancbmk_r",
+        "525.x264_r",
+        "531.deepsjeng_r",
+        "541.leela_r",
+        "548.exchange2_r",
+        "557.xz_r"
+      ], (item: string) => {
+        MenuItem({ content: item })
+          .onClick(() => {
+            this.runBenchmarks(item);
+          })
+      })
     }
   }
 
