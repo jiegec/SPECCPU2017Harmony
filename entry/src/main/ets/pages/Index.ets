@@ -29,16 +29,46 @@ function worker(filesDir: string, benchmark: string, args: string, core: number)
   return testNapi.run(filesDir, log, benchmark, args.split(" "), core);
 }
 
+let int_rate = [
+    "500.perlbench_r",
+    "502.gcc_r",
+    "505.mcf_r",
+    "520.omnetpp_r",
+    "523.xalancbmk_r",
+    "525.x264_r",
+    "531.deepsjeng_r",
+    "541.leela_r",
+    "548.exchange2_r",
+    "557.xz_r",
+];
+
+let fp_rate = [
+    "503.bwaves_r",
+    "507.cactuBSSN_r",
+    "508.namd_r",
+    "510.parest_r",
+    "511.povray_r",
+    "519.lbm_r",
+    "521.wrf_r",
+    "526.blender_r",
+    "527.cam4_r",
+    "538.imagick_r",
+    "544.nab_r",
+    "549.fotonik3d_r",
+    "554.roms_r",
+];
+
 @Entry
 @Component
 struct Index {
   @State log: string = '';
 
-  async runBenchmarks(filter: string) {
+  async runBenchmarks(filter: string[]) {
     this.log += testNapi.info() + "\n";
 
     let context = getContext(this);
     let benchmarks: Map<string, string[]> = new Map();
+    // int rate
     benchmarks.set("500.perlbench_r", [
       "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
       "-I./lib diffmail.pl 4 800 10 17 19 300",
@@ -80,8 +110,55 @@ struct Index {
       "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7"
     ]);
 
+    // fp rate
+    benchmarks.set("503.bwaves_r", [
+      // TODO: input redirection
+      "bwaves_1 < bwaves_1.in",
+      "bwaves_2 < bwaves_2.in",
+      "bwaves_3 < bwaves_3.in",
+      "bwaves_4 < bwaves_4.in",
+    ]);
+    benchmarks.set("507.cactuBSSN_r", [
+      "spec_ref.par",
+    ]);
+    benchmarks.set("508.namd_r", [
+      "--input apoa1.input --output apoa1.ref.output --iterations 65",
+    ]);
+    benchmarks.set("510.parest_r", [
+      "ref.prm",
+    ]);
+    benchmarks.set("511.povray_r", [
+      "SPEC-benchmark-ref.ini",
+    ]);
+    benchmarks.set("519.lbm_r", [
+      "3000 reference.dat 0 0 100_100_130_ldc.of",
+    ]);
+    benchmarks.set("521.wrf_r", [
+      "",
+    ]);
+    benchmarks.set("526.blender_r", [
+      "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
+    ]);
+    benchmarks.set("527.cam4_r", [
+      "",
+    ]);
+    benchmarks.set("538.imagick_r", [
+      "-limit disk 0 refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga",
+    ]);
+    benchmarks.set("544.nab_r", [
+      "1am0 1122214447 122",
+    ]);
+    benchmarks.set("549.fotonik3d_r", [
+      "",
+    ]);
+    benchmarks.set("554.roms_r", [
+      // TODO: input redirection
+      "< ocean_benchmark2.in.x",
+    ]);
+
     // from data/refrate/reftime
     let reftime: Map<string, number> = new Map();
+    // int rate
     reftime.set("500.perlbench_r", 1592);
     reftime.set("502.gcc_r", 1416);
     reftime.set("505.mcf_r", 1616);
@@ -92,6 +169,21 @@ struct Index {
     reftime.set("541.leela_r", 1656);
     reftime.set("548.exchange2_r", 2620);
     reftime.set("557.xz_r", 1080);
+    
+    // fp rate
+    reftime.set("503.bwaves_r", 10028);
+    reftime.set("507.cactuBSSN_r", 1266);
+    reftime.set("508.namd_r", 950);
+    reftime.set("510.parest_r", 2616);
+    reftime.set("511.povray_r", 2335);
+    reftime.set("519.lbm_r", 1054);
+    reftime.set("521.wrf_r", 2240);
+    reftime.set("526.blender_r", 1523);
+    reftime.set("527.cam4_r", 1749);
+    reftime.set("538.imagick_r", 2487);
+    reftime.set("544.nab_r", 1683);
+    reftime.set("549.fotonik3d_r", 3897);
+    reftime.set("554.roms_r", 1589);
 
     this.log += "Finding fastest core\n";
     let task: taskpool.Task = new taskpool.Task(findBestCore);
@@ -99,15 +191,7 @@ struct Index {
     this.log += "Found fastest core is " + core + "\n";
 
     let result: Map<string, number> = new Map();
-    let filtered: string[] = Array.from(benchmarks.keys());
-    for (let benchmark of benchmarks.keys()) {
-      if (benchmark === filter) {
-        filtered = [filter];
-        break;
-      }
-    }
-
-    for (let benchmark of filtered) {
+    for (let benchmark of filter) {
       this.log += "Run benchmark " + benchmark + "\n";
       hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
       let value = await context.resourceManager.getRawFileContent(benchmark + ".zip");
@@ -192,25 +276,24 @@ struct Index {
   @Builder
   benchmarkMenu() {
     Menu() {
-      MenuItem({ content: "Run All" })
+      MenuItem({ content: "int rate-1" })
         .onClick(() => {
-          this.runBenchmarks("");
+          this.runBenchmarks(int_rate);
         })
-      ForEach([
-        "500.perlbench_r",
-        "502.gcc_r",
-        "505.mcf_r",
-        "520.omnetpp_r",
-        "523.xalancbmk_r",
-        "525.x264_r",
-        "531.deepsjeng_r",
-        "541.leela_r",
-        "548.exchange2_r",
-        "557.xz_r"
-      ], (item: string) => {
+      ForEach(int_rate, (item: string) => {
         MenuItem({ content: item })
           .onClick(() => {
-            this.runBenchmarks(item);
+            this.runBenchmarks([item]);
+          })
+      })
+      MenuItem({ content: "fp rate-1" })
+        .onClick(() => {
+          this.runBenchmarks(fp_rate);
+        })
+      ForEach(fp_rate, (item: string) => {
+        MenuItem({ content: item })
+          .onClick(() => {
+            this.runBenchmarks([item]);
           })
       })
     }
