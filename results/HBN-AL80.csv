@@ -1,5 +1,5 @@
 benchmark,time
-500.perlbench_r,466
+500.perlbench_r,454
 502.gcc_r,271
 505.mcf_r,399
 520.omnetpp_r,525
