@@ -1,11 +1,11 @@
 benchmark,time
 500.perlbench_r,466
-502.gcc_r,276
+502.gcc_r,271
 505.mcf_r,399
 520.omnetpp_r,525
 523.xalancbmk_r,341
-525.x264_r,185
+525.x264_r,166
 531.deepsjeng_r,381
 541.leela_r,699
-548.exchange2_r,239
+548.exchange2_r,237
 557.xz_r,554
