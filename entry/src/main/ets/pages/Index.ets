@@ -27,7 +27,10 @@ function worker(filesDir: string, stdinFile: string, benchmark: string, args: st
   // run benchmark
   let stdoutFile: string = filesDir + "/stdout.log";
   let stderrFile: string = filesDir + "/stderr.log";
-  return testNapi.run(filesDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
+  let ret: number = testNapi.run(filesDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
+  hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
+  hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
+  return ret;
 }
 
 let int_rate = [
@@ -243,14 +246,14 @@ struct Index {
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
             arg);
-          this.log += "Failed benchmark " + benchmark + " with args " + arg + "\n";
+          this.log += "Failed benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
           failed = true;
           break;
         }
 
         hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
           arg, time.toString());
-        this.log += "Finished benchmark " + benchmark + " with args " + arg + " in " + time + "s\n";
+        this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
 
         totalTime += time;
       }
