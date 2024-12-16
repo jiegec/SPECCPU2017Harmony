@@ -144,6 +144,23 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   real_argv.push_back(NULL);
   const char *envp[1] = {NULL};
 
+  // emulate ulimit -s unlimited
+  // required for 527.cam4_r
+  struct rlimit rlim = {};
+  getrlimit(RLIMIT_STACK, &rlim);
+  OH_LOG_INFO(LOG_APP,
+              "Stack size limit before: soft is %{public}d, hard is %{public}d",
+              rlim.rlim_cur, rlim.rlim_max);
+  rlim.rlim_cur = RLIM_INFINITY;
+  rlim.rlim_max = RLIM_INFINITY;
+  setrlimit(RLIMIT_STACK, &rlim);
+
+  rlim = {};
+  getrlimit(RLIMIT_STACK, &rlim);
+  OH_LOG_INFO(LOG_APP,
+              "Stack size limit after: soft is %{public}d, hard is %{public}d",
+              rlim.rlim_cur, rlim.rlim_max);
+
   // use fork
   // 502.gcc_r does not free memory, leading to out of memory
   OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
