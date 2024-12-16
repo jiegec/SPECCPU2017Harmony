@@ -2,7 +2,7 @@
 
 Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT.
 
-It currently supports running SPEC CPU 2017 integer rate-1 and fp rate-1.
+It currently supports running SPEC CPU 2017 int rate-1 and fp rate-1.
 
 ## Usage
 
@@ -14,7 +14,7 @@ How to build on macOS (missing support for benchmarks that use Fortran):
 4. Setup code signing using DevEco Studio
 5. Execute `./build-macos.sh` under the root folder of this project
 
-How to build on Linux:
+How to build on Linux (all benchmarks are working):
 
 1. Install lld-20 and flang-20 from [LLVM APT](https://apt.llvm.org/)
 2. Copy the whole benchspec folder from SPEC CPU 2017 installation to the root folder of this project
@@ -29,3 +29,9 @@ To install the application to phone: either use DevEco Studio, or use `push.sh`.
 ## Result
 
 If you want to find existing benchmark results, please refer to [results](./results/README.md) folder.
+
+## TODO
+
+- output verification
+- copies>1 of rate tests
+- speed tests
