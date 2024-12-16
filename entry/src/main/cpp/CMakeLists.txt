@@ -49,8 +49,7 @@ add_subdirectory(544.nab_r)
 # need fortran
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         add_subdirectory(503.bwaves_r)
-        # TODO: fix compilation
-        # add_subdirectory(507.cactuBSSN_r)
+        add_subdirectory(507.cactuBSSN_r)
         add_subdirectory(521.wrf_r)
         add_subdirectory(527.cam4_r)
         add_subdirectory(549.fotonik3d_r)
