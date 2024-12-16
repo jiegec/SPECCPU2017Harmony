@@ -155,9 +155,9 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   // setrlimit not working
   // let's create a stack manually
 
-  // 256MB stack
+  // 1GB stack
   uint8_t *stack = NULL;
-  size_t size = 0x10000000;
+  size_t size = 0x40000000;
   posix_memalign((void **)&stack, 0x1000, size);
   uint8_t *stack_top = stack + size;
   OH_LOG_INFO(LOG_APP, "Allocated stack at %{public}lx-%{public}lx", stack,

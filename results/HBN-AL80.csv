@@ -10,11 +10,11 @@ benchmark,time,ratio
 548.exchange2_r,237,11.05
 557.xz_r,554,1.95
 int_rate,0,3.99
-503.bwaves_r,10028,1.00
+503.bwaves_r,368,27.25
 507.cactuBSSN_r,188,6.73
 508.namd_r,209,4.55
 510.parest_r,479,5.46
-511.povray_r,484,4.82
+511.povray_r,476,4.91
 519.lbm_r,205,5.14
 521.wrf_r,282,7.94
 526.blender_r,340,4.48
@@ -23,4 +23,4 @@ int_rate,0,3.99
 544.nab_r,261,6.45
 549.fotonik3d_r,436,8.94
 554.roms_r,292,5.44
-fp_rate,0,4.43
+fp_rate,0,5.72
