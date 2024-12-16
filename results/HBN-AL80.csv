@@ -4,12 +4,12 @@ benchmark,time,ratio
 505.mcf_r,399,4.05
 520.omnetpp_r,525,2.50
 523.xalancbmk_r,341,3.10
-525.x264_r,158,11.08
+525.x264_r,151,11.60
 531.deepsjeng_r,381,3.01
 541.leela_r,699,2.37
 548.exchange2_r,237,11.05
 557.xz_r,554,1.95
-int_rate,0,3.97
+int_rate,0,3.99
 503.bwaves_r,10028,1.00
 507.cactuBSSN_r,188,6.73
 508.namd_r,209,4.55
