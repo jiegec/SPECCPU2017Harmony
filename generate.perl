@@ -40,6 +40,10 @@ sub add_target {
     $bench_fppflags =~ s{-w -m literal-single.pm -m c-comment.pm}{};
     $bench_fppflags =~ s{-w -m literal.pm}{};
 
+    # handle symbol interposition
+    $bench_cflags = $bench_cflags . " -fvisibility=protected";
+    $bench_cxxflags = $bench_cxxflags . " -fvisibility=protected";
+
     # set flags for each language
     $bench_cflags = $bench_cflags . " " . $bench_flags;
     $bench_cxxflags = $bench_cxxflags . " " . $bench_flags;
