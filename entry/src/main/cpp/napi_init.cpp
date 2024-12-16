@@ -54,7 +54,7 @@ static napi_value Clock(napi_env env, napi_callback_info info) {
   assert(sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0);
   OH_LOG_INFO(LOG_APP, "Pin to cpu %{public}d", core);
 
-  int n = 100000;
+  int n = 500000;
   uint64_t before = get_time();
   // learned from lmbench lat_mem_rd
 #define FIVE(X) X X X X X
@@ -98,6 +98,7 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   assert(sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0);
   OH_LOG_INFO(LOG_APP, "Pin to cpu %{public}d", core);
 
+  // change workin directory
   std::string cwd = get_str(env, args[0]);
   OH_LOG_INFO(LOG_APP, "Change cwd to %{public}s", cwd.c_str());
   chdir(cwd.c_str());
@@ -107,21 +108,21 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   std::string stdin_file = get_str(env, args[1]);
   std::string stdout_file = get_str(env, args[2]);
   std::string stderr_file = get_str(env, args[3]);
-
   OH_LOG_INFO(LOG_APP, "Redirect stdin to %{public}s", stdin_file.c_str());
   OH_LOG_INFO(LOG_APP, "Redirect stdout to %{public}s", stdout_file.c_str());
   OH_LOG_INFO(LOG_APP, "Redirect stderr to %{public}s", stderr_file.c_str());
-  std::string benchmark = get_str(env, args[4]);
 
   // load benchmark main from library
   int (*main)(int argc, const char **argv, const char **envp);
-
+  std::string benchmark = get_str(env, args[4]);
   OH_LOG_INFO(LOG_APP, "Load benchmark %{public}s", benchmark.c_str());
   std::string library_name = "lib";
   library_name += benchmark;
   library_name += ".so";
   void *handle = dlopen(library_name.c_str(), RTLD_LAZY);
   if (!handle) {
+    OH_LOG_INFO(LOG_APP, "Failed to load benchmark %{public}s",
+                benchmark.c_str());
     // missing shared library
     // return -1.0
     napi_value ret;
@@ -131,6 +132,18 @@ static napi_value Run(napi_env env, napi_callback_info info) {
 
   main = (int (*)(int argc, const char **argv, const char **envp))dlsym(handle,
                                                                         "main");
+
+  if (!handle) {
+    OH_LOG_INFO(LOG_APP, "Failed to load benchmark %{public}s",
+                benchmark.c_str());
+    // missing shared library
+    // return -1.0
+    napi_value ret;
+    napi_create_double(env, -1.0, &ret);
+    return ret;
+  }
+
+  // construct argv
   std::vector<std::string> argv;
   argv.push_back(benchmark);
   uint32_t args_length;
@@ -154,7 +167,6 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   // required for 527.cam4_r
   // setrlimit not working
   // let's create a stack manually
-
   // 1GB stack
   uint8_t *stack = NULL;
   size_t size = 0x40000000;
@@ -163,8 +175,6 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   OH_LOG_INFO(LOG_APP, "Allocated stack at %{public}lx-%{public}lx", stack,
               stack_top);
 
-  // use fork
-  // 502.gcc_r does not free memory, leading to out of memory
   OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
 
   // io redirection
@@ -174,34 +184,26 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   freopen(stdout_file.c_str(), "w+", stdout);
   freopen(stderr_file.c_str(), "w+", stderr);
 
+  // use fork
+  // 502.gcc_r does not free memory, leading to out of memory
+  // large stack required for some benchmarks
   uint64_t before = get_time();
   uint64_t after;
   double res = -1;
   double time;
-  bool enable_fork = true;
-  if (enable_fork) {
-    pid_t pid = fork();
-    if (pid == 0) {
-      // equivalent to:
-      // int status = main(1 + args_length, real_argv.data(), envp);
-      // exit(status);
-
-      // run main & exit on the new stack
-      switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top);
-    } else {
-      assert(pid != -1);
-      int wstatus;
-      waitpid(pid, &wstatus, 0);
-      if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-        // failed
-        res = -1;
-        goto cleanup;
-      }
-    }
+  pid_t pid = fork();
+  if (pid == 0) {
+    // equivalent to:
+    // int status = main(1 + args_length, real_argv.data(), envp);
+    // exit(status);
+    // run main & exit on the new stack
+    switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top);
   } else {
-    int status = main(1 + args_length, real_argv.data(), envp);
-
-    if (status != 0) {
+    // in parent process
+    assert(pid != -1);
+    int wstatus;
+    waitpid(pid, &wstatus, 0);
+    if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
       // failed
       res = -1;
       goto cleanup;
