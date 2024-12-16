@@ -1,5 +1,6 @@
 #include "napi/native_api.h"
 #include <assert.h>
+#include <cstdlib>
 #include <dlfcn.h>
 #include <sched.h>
 #include <string>
@@ -12,6 +13,11 @@
 #include "hilog/log.h"
 #undef LOG_TAG
 #define LOG_TAG "mainTag"
+
+extern "C" void switch_stack(int argc, const char **argv, const char **envp,
+                             int (*callee)(int argc, const char **argv,
+                                           const char **envp),
+                             void *sp);
 
 static std::string get_str(napi_env env, napi_value value) {
   size_t size = 0;
@@ -146,81 +152,78 @@ static napi_value Run(napi_env env, napi_callback_info info) {
 
   // emulate ulimit -s unlimited
   // required for 527.cam4_r
-  struct rlimit rlim = {};
-  getrlimit(RLIMIT_STACK, &rlim);
-  OH_LOG_INFO(LOG_APP,
-              "Stack size limit before: soft is %{public}d, hard is %{public}d",
-              rlim.rlim_cur, rlim.rlim_max);
-  rlim.rlim_cur = RLIM_INFINITY;
-  rlim.rlim_max = RLIM_INFINITY;
-  setrlimit(RLIMIT_STACK, &rlim);
+  // setrlimit not working
+  // let's create a stack manually
 
-  rlim = {};
-  getrlimit(RLIMIT_STACK, &rlim);
-  OH_LOG_INFO(LOG_APP,
-              "Stack size limit after: soft is %{public}d, hard is %{public}d",
-              rlim.rlim_cur, rlim.rlim_max);
+  // 1MB stack
+  uint8_t *stack = NULL;
+  size_t size = 0x100000;
+  posix_memalign((void **)&stack, 0x1000, size);
+  uint8_t *stack_top = stack + size;
+  OH_LOG_INFO(LOG_APP, "Allocated stack at %{public}x-%{public}x", stack,
+              stack_top);
 
   // use fork
   // 502.gcc_r does not free memory, leading to out of memory
   OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
-  uint64_t before = get_time();
 
+  // io redirection
+  if (stdin_file.size() > 0) {
+    freopen(stdin_file.c_str(), "r", stdin);
+  }
+  freopen(stdout_file.c_str(), "w+", stdout);
+  freopen(stderr_file.c_str(), "w+", stderr);
+
+  uint64_t before = get_time();
+  uint64_t after;
+  double res = -1;
+  double time;
   bool enable_fork = true;
   if (enable_fork) {
     pid_t pid = fork();
     if (pid == 0) {
-      if (stdin_file.size() > 0) {
-        freopen(stdin_file.c_str(), "r", stdin);
-      }
-      freopen(stdout_file.c_str(), "w+", stdout);
-      freopen(stderr_file.c_str(), "w+", stderr);
+      // equivalent to:
+      // int status = main(1 + args_length, real_argv.data(), envp);
+      // exit(status);
 
-      int status = main(1 + args_length, real_argv.data(), envp);
-      exit(status);
+      // run main & exit on the new stack
+      switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top);
     } else {
       assert(pid != -1);
       int wstatus;
       waitpid(pid, &wstatus, 0);
       if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
         // failed
-        dlclose(handle);
-
-        // return -1.0
-        napi_value ret;
-        napi_create_double(env, -1.0, &ret);
-        return ret;
+        res = -1;
+        goto cleanup;
       }
     }
   } else {
-    if (stdin_file.size() > 0) {
-      freopen(stdin_file.c_str(), "r", stdin);
-    }
-    freopen(stdout_file.c_str(), "w+", stdout);
-    freopen(stderr_file.c_str(), "w+", stderr);
-
     int status = main(1 + args_length, real_argv.data(), envp);
 
     if (status != 0) {
       // failed
-      dlclose(handle);
-
-      // return -1.0
-      napi_value ret;
-      napi_create_double(env, -1.0, &ret);
-      return ret;
+      res = -1;
+      goto cleanup;
     }
   }
 
-  uint64_t after = get_time();
-  double time = (double)(after - before) / 1000000000;
+  after = get_time();
+  time = (double)(after - before) / 1000000000;
   OH_LOG_INFO(LOG_APP, "End benchmark %{public}s in %{public}fs",
               benchmark.c_str(), time);
+  res = time;
 
-  dlclose(handle);
+cleanup:
+  if (handle) {
+    dlclose(handle);
+  }
+  if (stack) {
+    free(stack);
+  }
 
   napi_value ret;
-  napi_create_double(env, time, &ret);
+  napi_create_double(env, res, &ret);
   return ret;
 }
 

@@ -13,10 +13,11 @@ sub add_target {
     # add more flags
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
-    if ($target != "502.gcc_r" and $target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "510.parest_r" and $target != "526.blender_r" and $enable_lto) {
+    if ($target != "502.gcc_r" and $target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "510.parest_r" and $target != "521.wrf_r" and $target != "526.blender_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         # -flto optimizes main function away for 503.bwaves_r
         # -flto ICE for 510.parest_r
+        # -flto too slow for 521.wrf_r
         # -flto too slow for 526.blender_r
         # -flto incompatible llvm version for 507.cactuBSSN_r
         $bench_flags = $bench_flags . " -flto";
@@ -25,13 +26,17 @@ sub add_target {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
+    if ($target == "521.wrf_r") {
+        $bench_cflags = $bench_cflags . " -DSPEC_CASE_FLAG";
+        # fix crash due to little endian
+        $bench_fflags = $bench_fflags . " -fconvert=big-endian";
+    }
+    if ($target == "527.cam4_r") {
+        $bench_cflags = $bench_cflags . " -DSPEC_CASE_FLAG";
+    }
     if ($target == "554.roms_r") {
         # fix compilation
         $bench_flags = $bench_flags . " -DNDEBUG";
-    }
-    if ($target == "521.wrf_r") {
-        # fix crash due to little endian
-        $bench_fflags = $bench_fflags . " -fconvert=big-endian";
     }
 
     # convert -I flags to target_include_directories
@@ -107,9 +112,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
 system("sed -i '1s;^;#include <fcntl.h>\\n;' entry/src/main/cpp/500.perlbench_r/perlio.c");
 system("sed -i 's/__linux__/__nonexistent__/' entry/src/main/cpp/510.parest_r/source/base/utilities.cc");
 system("sed -i 's/#if defined __FreeBSD__/#include <stdio.h>\\n#if 1/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
-system("sed -i 's/#if defined.* && !defined.*/#if 1/' entry/src/main/cpp/521.wrf_r/netcdf/include/ncfortran.h");
+system("sed -i 's/#if defined.* && !defined.*/#if 0/' entry/src/main/cpp/521.wrf_r/netcdf/include/ncfortran.h");
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/misc.c");
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/type.c");
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/reg_parse.c");
 system("sed -i 's/^#ifdef\$/#ifdef SPEC/' entry/src/main/cpp/527.cam4_r/ESMF_AlarmMod.F90");
-system("sed -i 's/#if defined.* && !defined.*/#if 1/' entry/src/main/cpp/527.cam4_r/netcdf/include/ncfortran.h");
+system("sed -i 's/#if defined.* && !defined.*/#if 0/' entry/src/main/cpp/527.cam4_r/netcdf/include/ncfortran.h");

@@ -15,7 +15,8 @@ set(NATIVERENDER_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${NATIVERENDER_ROOT_PATH}
                               ${NATIVERENDER_ROOT_PATH}/include)
 
-add_library(entry SHARED napi_init.cpp)
+enable_language(ASM)
+add_library(entry SHARED napi_init.cpp switch_stack.S)
 target_compile_definitions(entry PRIVATE "-DCXX_COMPILER_VERSION=${CMAKE_CXX_COMPILER_VERSION}")
 target_compile_definitions(entry PRIVATE "-DFORTRAN_COMPILER_VERSION=${CMAKE_Fortran_COMPILER_VERSION}")
 target_link_libraries(entry PUBLIC libace_napi.z.so)
