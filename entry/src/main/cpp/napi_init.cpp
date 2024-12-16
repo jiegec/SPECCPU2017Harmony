@@ -148,8 +148,34 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   // 502.gcc_r does not free memory, leading to out of memory
   OH_LOG_INFO(LOG_APP, "Start benchmark %{public}s", benchmark.c_str());
   uint64_t before = get_time();
-  pid_t pid = fork();
-  if (pid == 0) {
+
+  bool enable_fork = true;
+  if (enable_fork) {
+    pid_t pid = fork();
+    if (pid == 0) {
+      if (stdin_file.size() > 0) {
+        freopen(stdin_file.c_str(), "r", stdin);
+      }
+      freopen(stdout_file.c_str(), "w+", stdout);
+      freopen(stderr_file.c_str(), "w+", stderr);
+
+      int status = main(1 + args_length, real_argv.data(), envp);
+      exit(status);
+    } else {
+      assert(pid != -1);
+      int wstatus;
+      waitpid(pid, &wstatus, 0);
+      if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
+        // failed
+        dlclose(handle);
+
+        // return -1.0
+        napi_value ret;
+        napi_create_double(env, -1.0, &ret);
+        return ret;
+      }
+    }
+  } else {
     if (stdin_file.size() > 0) {
       freopen(stdin_file.c_str(), "r", stdin);
     }
@@ -157,12 +183,8 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     freopen(stderr_file.c_str(), "w+", stderr);
 
     int status = main(1 + args_length, real_argv.data(), envp);
-    exit(status);
-  } else {
-    assert(pid != -1);
-    int wstatus;
-    waitpid(pid, &wstatus, 0);
-    if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus) != 0) {
+
+    if (status != 0) {
       // failed
       dlclose(handle);
 
@@ -172,6 +194,7 @@ static napi_value Run(napi_env env, napi_callback_info info) {
       return ret;
     }
   }
+
   uint64_t after = get_time();
   double time = (double)(after - before) / 1000000000;
   OH_LOG_INFO(LOG_APP, "End benchmark %{public}s in %{public}fs",

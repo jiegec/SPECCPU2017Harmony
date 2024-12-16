@@ -225,9 +225,11 @@ struct Index {
       // run benchmark in background
       let totalTime: number = 0;
       let failed: boolean = false;
+      let index: number = 0;
       for (let arg of benchmarks.get(benchmark)!) {
-        this.log += "Run benchmark " + benchmark + " with args " + arg + "\n";
-        hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s with %{public}s', benchmark, arg);
+        index += 1;
+        this.log += "Run benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
+        hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s #%{public}d with %{public}s', benchmark, index, arg);
         let args = arg.split(" ");
         let stdinFile = "";
         if (args.length >= 2 && args[args.length-2] === "<") {
