@@ -282,7 +282,7 @@ struct Index {
       ratios.push(ratio);
       geomean *= ratio;
     }
-    this.log += "Est. SPECrate(R)2017_int_base " + Math.pow(geomean, 1 / result.size) + "\n";
+    this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size) + "\n";
   }
 
   @Builder
