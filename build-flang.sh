@@ -5,10 +5,9 @@ set -x -e
 mkdir -p flang
 DST=$PWD/flang
 cd $HOME/llvm-project
-git checkout llvmorg-19.1.0
-git reset llvmorg-19.1.0 --hard
-# fix missing include path
-git cherry-pick b9198a17315757dc0c2e831c9df0498dcab55285
+git checkout main
+# match hash in flang-new-20 --version
+git reset 99354f968f64 --hard
 
 cd libunwind
 rm -rf build

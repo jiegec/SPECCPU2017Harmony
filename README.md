@@ -2,11 +2,11 @@
 
 Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT.
 
-It currently supports running SPEC CPU 2017 integer rate-1 (548.exchange2_r requires flang, currently only working on Linux).
+It currently supports running SPEC CPU 2017 integer rate-1 and fp rate-1.
 
 ## Usage
 
-How to build on macOS (missing 548.exchange2_r support):
+How to build on macOS (missing support for benchmarks that use Fortran):
 
 1. Copy the whole benchspec folder from SPEC CPU 2017 installation to the root folder of this project
 2. Execute `perl generate.perl` under the root folder of this project

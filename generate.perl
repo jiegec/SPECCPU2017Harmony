@@ -16,11 +16,11 @@ sub add_target {
     if ($target != "502.gcc_r" and $target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "510.parest_r" and $target != "521.wrf_r" and $target != "526.blender_r" and $target != "527.cam4_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         # -flto optimizes main function away for 503.bwaves_r
+        # -flto incompatible llvm version for 507.cactuBSSN_r
         # -flto ICE for 510.parest_r
         # -flto too slow for 521.wrf_r
         # -flto too slow for 526.blender_r
         # -flto too slow for 527.cam4_r
-        # -flto incompatible llvm version for 507.cactuBSSN_r
         $bench_flags = $bench_flags . " -flto";
     }
     if ($target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "521.wrf_r" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
