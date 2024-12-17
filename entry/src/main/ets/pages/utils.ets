@@ -1,5 +1,6 @@
 import fs from '@ohos.file.fs';
 import { util } from '@kit.ArkTS';
+import { hilog } from '@kit.PerformanceAnalysisKit';
 
 export function readWholeFile(path: string): ArrayBuffer {
   let size = fs.statSync(path).size;
@@ -21,6 +22,7 @@ export function readWholeFile(path: string): ArrayBuffer {
 
 function isEqualBinary(a: ArrayBuffer, b: ArrayBuffer): boolean {
   if (a.byteLength != b.byteLength) {
+    hilog.info(0x0000, 'mainTag', 'Length mismatch: %{public}d vs %{public}d', a.byteLength, b.byteLength);
     return false;
   }
 
@@ -28,6 +30,7 @@ function isEqualBinary(a: ArrayBuffer, b: ArrayBuffer): boolean {
   let bb = new Int8Array(b);
   for (let i = 0; i < a.byteLength; i++) {
     if (aa[i] !== bb[i]) {
+      hilog.info(0x0000, 'mainTag', 'Byte mismatch: %{public}d vs %{public}d', aa[i], bb[i]);
       return false;
     }
   }
@@ -59,6 +62,7 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
   let aLines: string[] = aStr.split("\n");
   let bLines: string[] = bStr.split("\n");
   if (aLines.length !== bLines.length) {
+    hilog.info(0x0000, 'mainTag', 'Number of lines mismatch: %{public}d vs %{public}d', aLines, bLines);
     return false;
   }
 
@@ -69,10 +73,11 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
     let aParts: string[] = aLine.split(" ");
     let bParts: string[] = bLine.split(" ");
     if (aParts.length !== bParts.length) {
+      hilog.info(0x0000, 'mainTag', 'Number of parts mismatch: %{public}d vs %{public}d', aParts.length, bParts.length);
       return false;
     }
 
-    for (let j = 0;j < aLines.length;j++) {
+    for (let j = 0;j < aParts.length;j++) {
       let aPart: string = aParts[j];
       let bPart: string = bParts[j];
 
@@ -83,6 +88,7 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
         // check relative error
         if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
           if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
+            hilog.info(0x0000, 'mainTag', 'Relative tolerance violated: %{public}f vs %{public}f', aFloat, bFloat);
             return false;
           }
         }
@@ -90,10 +96,12 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
         // check absolute error
         if (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined) {
           if (Math.abs(aFloat - bFloat) > options!.absoluteTolerance!) {
+            hilog.info(0x0000, 'mainTag', 'Absolute tolerance violated: %{public}f vs %{public}f', aFloat, bFloat);
             return false;
           }
         }
       } else if (aPart !== bPart) {
+        hilog.info(0x0000, 'mainTag', 'Part mismatch: %{public}s vs %{public}s', aPart, bPart);
         return false;
       }
     }
