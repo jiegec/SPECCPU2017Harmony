@@ -494,7 +494,7 @@ struct Index {
         this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
 
         if (validate.type !== "SKIPPED") {
-          this.log += "Output validation passed\n";
+          this.log += "Output validation passed for " + benchmark + " #" + index + "\n";
         }
 
         totalTime += time;
