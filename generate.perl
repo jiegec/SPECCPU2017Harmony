@@ -72,6 +72,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     if ($benchmark == "511.povray_r") {
         @sources = @{%sources{"povray_r"}};
         add_target("511.povray_r");
+        
+        @sources = @{%sources{"imagevalidate_511"}};
+        add_target("imagevalidate_511");
     } elsif ($benchmark == "521.wrf_r") {
         @sources = @{%sources{"wrf_r"}};
         add_target("521.wrf_r");

@@ -365,13 +365,95 @@ struct Index {
       } as BenchmarkConfig,
     ]);
     benchmarks.set("508.namd_r", [
-      "--input apoa1.input --output apoa1.ref.output --iterations 65",
+      {
+        args: "--input apoa1.input --output apoa1.ref.output --iterations 65",
+        validates: [{
+          type: "FILE",
+          file: "apoa1.ref.output",
+          compareOption: {
+            absoluteTolerance: 5e-05,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("510.parest_r", [
-      "ref.prm",
+      {
+        args: "ref.prm",
+        validates: [{
+          type: "FILE",
+          file: "001-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "002-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "003-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "004-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "005-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "006-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "007-m00.vtk",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "log",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "me.prm",
+          compareOption: {
+            absoluteTolerance: 0.001,
+          }
+        }, {
+          type: "FILE",
+          file: "statistics",
+          compareOption: {
+            absoluteTolerance: 0.004,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("511.povray_r", [
-      "SPEC-benchmark-ref.ini",
+      {
+        args: "SPEC-benchmark-ref.ini",
+        validates: [{
+          type: "COMMAND",
+          command: "imagevalidate_511 SPEC-benchmark.tga ../compare/SPEC-benchmark.org.tga",
+          file: "imagevalidate_SPEC-benchmark.tga.out",
+          compareOption: {
+            relativeTolerance: 0.06,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("519.lbm_r", [
       "3000 reference.dat 0 0 100_100_130_ldc.of",

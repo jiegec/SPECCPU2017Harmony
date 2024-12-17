@@ -11,7 +11,7 @@ benchmark,time,ratio
 557.xz_r,549,1.97
 int_rate,0,4.05
 503.bwaves_r,311,32.24
-507.cactuBSSN_r,186,6.81
+507.cactuBSSN_r,185,6.81
 508.namd_r,209,4.55
 510.parest_r,479,5.46
 511.povray_r,476,4.91
