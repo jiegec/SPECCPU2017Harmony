@@ -4,15 +4,31 @@ import testNapi from 'libentry.so';
 import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
-import { isEqual, readWholeFile } from './utils.ets';
+import { isEqual, isEqualFp, readWholeFile, CompareOptions } from './utils.ets';
 import { promptAction } from '@kit.ArkUI';
 
-interface ValidateConfig {
-  // stdout validation, compare stdout and file
-  // file validation, compare the two files with the same file name under input and output
-  type: "SKIPPED" | "STDOUT" | "FILE";
+interface CommandValidateConfig {
+  // command to run
+  command: string;
 
+  // the file to be compared against the stdout of the command
+  file: string;
+
+  // fp compare option
+  compareOption: CompareOptions;
+}
+
+interface ValidateConfig {
+  // stdout validation, compare stdout and specified file under output folder
+  // file validation, compare two files with the same file name under input and output folders
+  // command validation, run custom command to validate the output
+  type: "SKIPPED" | "STDOUT" | "FILE" | "COMMAND";
+
+  // stdout/file validation
   file?: string;
+
+  // command validation
+  commands?: CommandValidateConfig[];
 }
 
 interface BenchmarkConfig {
@@ -43,19 +59,26 @@ function findBestCore(): number {
 
 @Concurrent
 function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
+  hilog.info(0x0000, 'mainTag', 'Enter worker: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d, %{public}s', inputDir, outputDir, stdinFile, benchmark, JSON.stringify(args), core, JSON.stringify(validate));
   let ret: number = -1;
   try {
     // run benchmark
     let stdoutFile: string = inputDir + "/stdout.log";
     let stderrFile: string = inputDir + "/stderr.log";
+    hilog.info(0x0000, 'mainTag', 'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
+      inputDir, stdinFile, stdoutFile, stderrFile, benchmark, JSON.stringify(args), core);
     ret = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
     hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
     hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
 
+    if (ret < 0) {
+      return ret;
+    }
+    
     // validation
-    let expectedFile: string = outputDir + "/" + validate.file!;
     if (validate.type === "STDOUT" || validate.type === "FILE") {
       // compare two files
+      let expectedFile: string = outputDir + "/" + validate.file!;
       let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
       hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
 
@@ -66,6 +89,38 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
       } else {
         hilog.info(0x0000, 'mainTag', 'Validation failed');
         ret = -1;
+      }
+    } else if (validate.type === "COMMAND") {
+      // run command, and then compare its stdout to file
+      for (let command of validate.commands!) {
+        let parts = command.command.split(" ");
+        let validator = parts[0];
+        let validator_args = parts.slice(1);
+        let stdoutFile: string = inputDir + "/validate-stdout.log";
+        let stderrFile: string = inputDir + "/validate-stderr.log";
+        hilog.info(0x0000, 'mainTag', 'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
+          inputDir, "", stdoutFile, stderrFile, validator, JSON.stringify(validator_args), core);
+        if (testNapi.run(inputDir, "", stdoutFile, stderrFile, validator, validator_args, core) < 0) {
+          hilog.info(0x0000, 'mainTag', 'Failed to run validation command %{publics}', validator_args);
+          ret = -1;
+          break;
+        }
+        hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
+        hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
+
+        // compare stdout and expected
+        let actualFile: string = stdoutFile;
+        let expectedFile: string = outputDir + "/" + command.file;
+
+        let actual: ArrayBuffer = readWholeFile(actualFile);
+        let expected: ArrayBuffer = readWholeFile(expectedFile);
+        if (isEqualFp(actual, expected, command.compareOption)) {
+          hilog.info(0x0000, 'mainTag', 'Validation passed: %{public}d bytes', actual.byteLength);
+        } else {
+          hilog.info(0x0000, 'mainTag', 'Validation failed');
+          ret = -1;
+          break;
+        }
       }
     }
   } catch (err) {
@@ -215,7 +270,21 @@ struct Index {
     benchmarks.set("525.x264_r", [
       "--pass 1 --stats x264_stats.log --bitrate 1000 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
       "--pass 2 --stats x264_stats.log --bitrate 1000 --dumpyuv 200 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
-      "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720"
+      {
+        args: "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
+        validate: {
+          type: "COMMAND",
+          commands: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
+            return {
+              command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame + ".yuv ../compare/frame_" + frame + ".org.tga",
+              file: "imagevalidate_frame_" + frame + ".out",
+              compareOption: {
+                relativeTolerance: 0.085,
+              } as CompareOptions,
+            } as CommandValidateConfig;
+          }),
+        },
+      }
     ]);
     benchmarks.set("531.deepsjeng_r", [
       {
@@ -378,7 +447,7 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core, { type: "SKIPPED" } as ValidateConfig);
+          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "), core, { type: "SKIPPED" } as ValidateConfig);
         await taskpool.execute(task);
       }
 

@@ -1,4 +1,5 @@
 import fs from '@ohos.file.fs';
+import { util } from '@kit.ArkTS';
 
 export function readWholeFile(path: string): ArrayBuffer {
   let size = fs.statSync(path).size;
@@ -30,5 +31,56 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
       return false;
     }
   }
+  return true;
+}
+
+
+export interface CompareOptions {
+  // relative error tolerance
+  relativeTolerance?: number;
+}
+
+// mimic specdiff, allowing fp tolerance
+export function isEqualFp(a: ArrayBuffer, b: ArrayBuffer, options: CompareOptions): boolean {
+  // decode utf-8
+  let decoder = new util.TextDecoder('utf-8');
+  let aStr: string = decoder.decodeToString(new Uint8Array(a));
+  let bStr: string = decoder.decodeToString(new Uint8Array(b));
+
+  // compare each line
+  let aLines: string[] = aStr.split("\n");
+  let bLines: string[] = bStr.split("\n");
+  if (aLines.length !== bLines.length) {
+    return false;
+  }
+
+  for (let i = 0;i < aLines.length;i++) {
+    let aLine: string = aLines[i];
+    let bLine: string = bLines[i];
+
+    let aParts: string[] = aLine.split(" ");
+    let bParts: string[] = bLine.split(" ");
+    if (aParts.length !== bParts.length) {
+      return false;
+    }
+
+    for (let j = 0;j < aLines.length;j++) {
+      let aPart: string = aParts[j];
+      let bPart: string = bParts[j];
+
+      let aFloat: number = parseFloat(aPart);
+      let bFloat: number = parseFloat(bPart);
+      if (!isNaN(aFloat) && !isNaN(bFloat)) {
+        // fp
+        // check relative error
+        if (Math.abs(aFloat - bFloat) / aFloat > (options.relativeTolerance ?? 0.0)) {
+          return false;
+        }
+      } else if (aPart !== bPart) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
