@@ -4,6 +4,7 @@ import testNapi from 'libentry.so';
 import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
+import { isEqual, readWholeFile } from './utils.ets';
 
 interface ValidateConfig {
   // stdout validation, compare stdout and file
@@ -41,28 +42,34 @@ function findBestCore(): number {
 
 @Concurrent
 function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
-  // run benchmark
-  let stdoutFile: string = inputDir + "/stdout.log";
-  let stderrFile: string = inputDir + "/stderr.log";
-  let ret: number = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
-  hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
-  hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
+  let ret: number = -1;
+  try {
+    // run benchmark
+    let stdoutFile: string = inputDir + "/stdout.log";
+    let stderrFile: string = inputDir + "/stderr.log";
+    ret = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
+    hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
+    hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
 
-  // validation
-  let expectedFile: string = outputDir + "/" + validate.file!;
-  if (validate.type === "STDOUT" || validate.type === "FILE") {
-    // compare two files
-    let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
-    hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
+    // validation
+    let expectedFile: string = outputDir + "/" + validate.file!;
+    if (validate.type === "STDOUT" || validate.type === "FILE") {
+      // compare two files
+      let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
+      hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
 
-    let actual: string = fs.readTextSync(actualFile);
-    let expected: string = fs.readTextSync(expectedFile);
-    if (actual === expected) {
-      hilog.info(0x0000, 'mainTag', 'Validation passed');
-    } else {
-      hilog.info(0x0000, 'mainTag', 'Validation failed');
-      return -1;
+      let actual: ArrayBuffer = readWholeFile(actualFile);
+      let expected: ArrayBuffer = readWholeFile(expectedFile);
+      if (isEqual(actual, expected)) {
+        hilog.info(0x0000, 'mainTag', 'Validation passed: %{public}d bytes', actual.byteLength);
+      } else {
+        hilog.info(0x0000, 'mainTag', 'Validation failed');
+        ret = -1;
+      }
     }
+  } catch (err) {
+    hilog.info(0x0000, 'mainTag', 'Got error: %{public}s', JSON.stringify(err));
+    ret = -1;
   }
   return ret;
 }
@@ -189,7 +196,7 @@ struct Index {
       {
         args: "-v t5.xml xalanc.xsl",
         validate: {
-          type: "FILE",
+          type: "STDOUT",
           file: "ref-t5.out",
         },
       } as BenchmarkConfig,
