@@ -32,6 +32,6 @@ If you want to find existing benchmark results, please refer to [results](./resu
 
 ## TODO
 
-- output verification
+- output verification for fp rate
 - copies>1 of rate tests
 - speed tests
