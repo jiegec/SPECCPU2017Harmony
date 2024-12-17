@@ -5,6 +5,22 @@ import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
 
+interface ValidateConfig {
+  type: "SKIPPED" | "FILE";
+
+  // file validation, compare by content
+  file?: string;
+}
+
+interface BenchmarkConfig {
+  // command argv
+  args: string;
+  // how to validate output
+  validate: ValidateConfig;
+}
+
+type Benchmark = string | BenchmarkConfig;
+
 @Concurrent
 function findBestCore(): number {
   // find core with maximum clock frequency
@@ -23,13 +39,29 @@ function findBestCore(): number {
 }
 
 @Concurrent
-function worker(filesDir: string, stdinFile: string, benchmark: string, args: string[], core: number): number {
+function worker(filesDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
   // run benchmark
   let stdoutFile: string = filesDir + "/stdout.log";
   let stderrFile: string = filesDir + "/stderr.log";
   let ret: number = testNapi.run(filesDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
   hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
   hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
+
+  // validation
+  if (validate.type === "FILE") {
+    // compare stdout and validation file
+    let validateFile: string = filesDir + "/" + validate.file!;
+    hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', stdoutFile, validateFile);
+
+    let actual: string = fs.readTextSync(stdoutFile);
+    let expected: string = fs.readTextSync(validateFile);
+    if (actual === expected) {
+      hilog.info(0x0000, 'mainTag', 'Validation passed');
+    } else {
+      hilog.info(0x0000, 'mainTag', 'Validation failed');
+      return -1;
+    }
+  }
   return ret;
 }
 
@@ -71,19 +103,67 @@ struct Index {
     this.log += testNapi.info() + "\n";
 
     let context = getContext(this);
-    let benchmarks: Map<string, string[]> = new Map();
+    let benchmarks: Map<string, Benchmark[]> = new Map();
     // int rate
     benchmarks.set("500.perlbench_r", [
-      "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
-      "-I./lib diffmail.pl 4 800 10 17 19 300",
-      "-I./lib splitmail.pl 6400 12 26 16 100 0"
+      { 
+        args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
+        validate: {
+          type: "FILE",
+          file: "checkspam.2500.5.25.11.150.1.1.1.1.out",
+        }
+      } as BenchmarkConfig,
+      {
+        args: "-I./lib diffmail.pl 4 800 10 17 19 300",
+        validate: {
+          type: "FILE",
+          file: "diffmail.4.800.10.17.19.300.out",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "-I./lib splitmail.pl 6400 12 26 16 100 0",
+        validate: {
+          type: "FILE",
+          file: "splitmail.6400.12.26.16.100.0.out",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("502.gcc_r", [
-      "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
-      "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
-      "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
-      "ref32.c -O5 -o ref32.opts-O5.s",
-      "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s"
+      {
+        args: "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
+        validate: {
+          type: "FILE",
+          file: "gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
+        validate: {
+          type: "FILE",
+          file: "gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
+        validate: {
+          type: "FILE",
+          file: "gcc-smaller.opts-O3_-fipa-pta.s",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "ref32.c -O5 -o ref32.opts-O5.s",
+        validate: {
+          type: "FILE",
+          file: "ref32.opts-O5.s",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s"
+        validate: {
+          type: "FILE",
+          file: "ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("505.mcf_r", [
       "inp.in"
@@ -220,7 +300,7 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, filesDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core);
+          new taskpool.Task(worker, filesDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core, { type: "SKIPPED" } as ValidateConfig);
         await taskpool.execute(task);
       }
 
@@ -229,8 +309,17 @@ struct Index {
       let totalTime: number = 0;
       let failed: boolean = false;
       let index: number = 0;
-      for (let arg of benchmarks.get(benchmark)!) {
+      for (let b of benchmarks.get(benchmark)!) {
         index += 1;
+        let arg: string;
+        let validate: ValidateConfig = { type: "SKIPPED" };
+        if (typeof b === "string") {
+          arg = b;
+        } else {
+          arg = (b as BenchmarkConfig).args;
+          validate = (b as BenchmarkConfig).validate;
+        }
+
         this.log += "Run benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
         hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s #%{public}d with %{public}s', benchmark, index, arg);
         let args = arg.split(" ");
@@ -241,7 +330,7 @@ struct Index {
           args.pop();
         }
 
-        let task: taskpool.Task = new taskpool.Task(worker, filesDir, stdinFile, benchmark, args, core);
+        let task: taskpool.Task = new taskpool.Task(worker, filesDir, stdinFile, benchmark, args, core, validate);
         let time: number = await taskpool.execute(task) as number;
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
