@@ -8,6 +8,14 @@ sub add_target {
     {
         $source =~ s{\*$}{};
     }
+    if ($target == "diffwrf_521") {
+        # add missing sources due to split module folder
+        push(@sources, "module_cam_shr_const_mod.F90");
+        push(@sources, "module_cam_shr_kind_mod.F90");
+        push(@sources, "module_gfs_machine.F90");
+        push(@sources, "module_gfs_physcons.F90");
+        push(@sources, "ESMF_Fraction.F90 ");
+    }
     print(FH "add_library(", $target, " SHARED ", (join " ", @sources) , ")\n");
 
     # add more flags
@@ -61,6 +69,11 @@ sub add_target {
     $bench_fflags = $bench_fflags . " " . $bench_fppflags . " " . $bench_flags;
 
     print(FH "target_compile_options(", $target, " PRIVATE\n\t\$<\$<COMPILE_LANGUAGE:C>:", $bench_cflags, ">\n\t\$<\$<COMPILE_LANGUAGE:CXX>:", $bench_cxxflags, ">\n\t\$<\$<COMPILE_LANGUAGE:Fortran>:", $bench_fflags, ">)\n");
+
+    # handle same fortran source in multiple targets in 521.wrf_r
+    # https://stackoverflow.com/questions/73036890/cmake-multiple-version-of-fortran-mod-files
+    print(FH "set_target_properties(", $target, " PROPERTIES Fortran_MODULE_DIRECTORY \${CMAKE_CURRENT_BINARY_DIR}/", $target, ")\n");
+    print(FH "target_include_directories(", $target, " PUBLIC \${CMAKE_CURRENT_BINARY_DIR}/", $target, ")\n");
 }
 
 for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "523.xalancbmk_r", "525.x264_r", "531.deepsjeng_r", "541.leela_r", "548.exchange2_r", "557.xz_r", "503.bwaves_r", "507.cactuBSSN_r", "508.namd_r", "510.parest_r", "511.povray_r", "519.lbm_r", "521.wrf_r", "526.blender_r", "527.cam4_r", "538.imagick_r", "544.nab_r", "549.fotonik3d_r", "554.roms_r") {
@@ -79,8 +92,8 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
         @sources = @{%sources{"wrf_r"}};
         add_target("521.wrf_r");
 
-        # @sources = @{%sources{"diffwrf_521"}};
-        # add_target("diffwrf_521");
+        @sources = @{%sources{"diffwrf_521"}};
+        add_target("diffwrf_521");
     } elsif ($benchmark == "525.x264_r") {
         @sources = @{%sources{"x264_r"}};
         add_target("525.x264_r");

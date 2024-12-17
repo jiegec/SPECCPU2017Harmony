@@ -95,7 +95,7 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
         hilog.info(0x0000, 'mainTag', 'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
           inputDir, "", stdoutFile, stderrFile, validator, JSON.stringify(validator_args), core);
         if (testNapi.run(inputDir, "", stdoutFile, stderrFile, validator, validator_args, core) < 0) {
-          hilog.info(0x0000, 'mainTag', 'Failed to run validation command %{publics}', validator_args);
+          hilog.info(0x0000, 'mainTag', 'Failed to run validation command %{public}s', validate.command!);
           ret = -1;
           break;
         }
