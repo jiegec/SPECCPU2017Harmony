@@ -456,7 +456,16 @@ struct Index {
       } as BenchmarkConfig,
     ]);
     benchmarks.set("519.lbm_r", [
-      "3000 reference.dat 0 0 100_100_130_ldc.of",
+      {
+        args: "3000 reference.dat 0 0 100_100_130_ldc.of",
+        validates: [{
+          type: "STDOUT",
+          file: "lbm.out",
+          compareOption: {
+            absoluteTolerance: 1e-07,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("521.wrf_r", [
       "",
