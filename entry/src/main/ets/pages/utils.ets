@@ -85,20 +85,29 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
       let bFloat: number = parseFloat(bPart);
       if (!isNaN(aFloat) && !isNaN(bFloat)) {
         // fp
+        // either one within error is okay
+
         // check relative error
+        let relativePass: boolean = false;
         if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
+          relativePass = true;
           if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
-            hilog.info(0x0000, 'mainTag', 'Relative tolerance violated: %{public}f vs %{public}f', aFloat, bFloat);
-            return false;
+            relativePass = false;
           }
         }
 
         // check absolute error
+        let absolutePass: boolean = false;
         if (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined) {
+          absolutePass = true;
           if (Math.abs(aFloat - bFloat) > options!.absoluteTolerance!) {
-            hilog.info(0x0000, 'mainTag', 'Absolute tolerance violated: %{public}f vs %{public}f', aFloat, bFloat);
-            return false;
+            absolutePass = false;
           }
+        }
+
+        if (!relativePass && !absolutePass) {
+          hilog.info(0x0000, 'mainTag', 'Relative/absolute tolerance violated: %{public}s vs %{public}s from %{public}s and %{public}s', aFloat.toString(), bFloat.toString(), aLine, bLine);
+          return false;
         }
       } else if (aPart !== bPart) {
         hilog.info(0x0000, 'mainTag', 'Part mismatch: %{public}s vs %{public}s', aPart, bPart);
