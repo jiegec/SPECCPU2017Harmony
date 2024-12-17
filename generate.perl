@@ -101,9 +101,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
 
     # zip inputs
     system("rm -rf tmp");
-    system("mkdir -p tmp");
-    system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/all/input/* ./benchspec/CPU/" . $benchmark . "/data/refrate/input/* tmp/");
-    system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/refrate/output/* tmp/");
+    system("mkdir -p tmp/input tmp/output");
+    system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/all/input/* ./benchspec/CPU/" . $benchmark . "/data/refrate/input/* tmp/input/");
+    system("cp -rv ./benchspec/CPU/" . $benchmark . "/data/refrate/output/* tmp/output/");
     system("rm -f entry/src/main/resources/rawfile/" . $benchmark . ".zip");
     system("cd tmp && zip -r ../entry/src/main/resources/rawfile/" . $benchmark . ".zip *");
     system("rm -rf tmp");

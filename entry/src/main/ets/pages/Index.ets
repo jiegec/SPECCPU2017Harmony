@@ -6,9 +6,10 @@ import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
 
 interface ValidateConfig {
-  type: "SKIPPED" | "FILE";
+  // stdout validation, compare stdout and file
+  // file validation, compare the two files with the same file name under input and output
+  type: "SKIPPED" | "STDOUT" | "FILE";
 
-  // file validation, compare by content
   file?: string;
 }
 
@@ -39,18 +40,19 @@ function findBestCore(): number {
 }
 
 @Concurrent
-function worker(filesDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
+function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
   // run benchmark
-  let stdoutFile: string = filesDir + "/stdout.log";
-  let stderrFile: string = filesDir + "/stderr.log";
-  let ret: number = testNapi.run(filesDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
+  let stdoutFile: string = inputDir + "/stdout.log";
+  let stderrFile: string = inputDir + "/stderr.log";
+  let ret: number = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
   hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
   hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
 
   // validation
-  if (validate.type === "FILE") {
-    // compare stdout and validation file
-    let validateFile: string = filesDir + "/" + validate.file!;
+  let validateFile: string = outputDir + "/" + validate.file!;
+  if (validate.type === "STDOUT" || validate.type === "FILE") {
+    // compare two files
+    let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
     hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', stdoutFile, validateFile);
 
     let actual: string = fs.readTextSync(stdoutFile);
@@ -109,21 +111,21 @@ struct Index {
       { 
         args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
         validate: {
-          type: "FILE",
+          type: "STDOUT",
           file: "checkspam.2500.5.25.11.150.1.1.1.1.out",
         }
       } as BenchmarkConfig,
       {
         args: "-I./lib diffmail.pl 4 800 10 17 19 300",
         validate: {
-          type: "FILE",
+          type: "STDOUT",
           file: "diffmail.4.800.10.17.19.300.out",
         },
       } as BenchmarkConfig,
       {
         args: "-I./lib splitmail.pl 6400 12 26 16 100 0",
         validate: {
-          type: "FILE",
+          type: "STDOUT",
           file: "splitmail.6400.12.26.16.100.0.out",
         },
       } as BenchmarkConfig,
@@ -295,16 +297,22 @@ struct Index {
       };
       await zlib.decompressFile(filePath, filesDir, options);
 
+      let inputDir = filesDir + "/input";
+      let outputDir = filesDir + "/output";
+
       if (benchmark === "525.x264_r") {
         // generate BuckBunny.yuv
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, filesDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core, { type: "SKIPPED" } as ValidateConfig);
+          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv", core, { type: "SKIPPED" } as ValidateConfig);
         await taskpool.execute(task);
       }
 
-      hilog.info(0x0000, 'mainTag', 'Got files: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under benchmark folder: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under input folder: %{public}s', JSON.stringify(fs.listFileSync(inputDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under output folder: %{public}s', JSON.stringify(fs.listFileSync(outputDir)));
+
       // run benchmark in background
       let totalTime: number = 0;
       let failed: boolean = false;
@@ -330,7 +338,7 @@ struct Index {
           args.pop();
         }
 
-        let task: taskpool.Task = new taskpool.Task(worker, filesDir, stdinFile, benchmark, args, core, validate);
+        let task: taskpool.Task = new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validate);
         let time: number = await taskpool.execute(task) as number;
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
