@@ -81,6 +81,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
         
         @sources = @{%sources{"ldecod_r"}};
         add_target("ldecod_r");
+
+        @sources = @{%sources{"imagevalidate_525"}};
+        add_target("imagevalidate_525");
     } elsif ($benchmark == "526.blender_r") {
         @sources = @{%sources{"blender_r"}};
         add_target("526.blender_r");

@@ -5,6 +5,7 @@ import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
 import { isEqual, readWholeFile } from './utils.ets';
+import { promptAction } from '@kit.ArkUI';
 
 interface ValidateConfig {
   // stdout validation, compare stdout and file
@@ -107,8 +108,18 @@ let fp_rate = [
 @Component
 struct Index {
   @State log: string = '';
+  @State running: boolean = false;
 
   async runBenchmarks(filter: string[]) {
+    if (this.running) {
+      promptAction.showToast({
+        message: 'Already running',
+        duration: 2000
+      });
+      return;
+    }
+    this.running = true;
+
     this.log += testNapi.info() + "\n";
 
     let context = getContext(this);
@@ -413,6 +424,10 @@ struct Index {
           arg, time.toString());
         this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
 
+        if (validate.type !== "SKIPPED") {
+          this.log += "Output validation passed\n";
+        }
+
         totalTime += time;
       }
       
@@ -445,6 +460,8 @@ struct Index {
       }
       this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size) + "\n";
     }
+
+    this.running = false;
   }
 
   @Builder
