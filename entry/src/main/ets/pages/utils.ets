@@ -9,8 +9,10 @@ export function readWholeFile(path: string): ArrayBuffer {
   let bytesRead: number = 0;
   while (bytesRead < size) {
     let length: number = fs.readSync(file.fd, buf);
-    res.set(new Uint8Array(buf), bytesRead);
-    bytesRead += length;
+    if (length > 0) {
+      res.set(new Uint8Array(buf, 0, length), bytesRead);
+      bytesRead += length;
+    }
   }
   fs.closeSync(file);
   return res;

@@ -68,7 +68,7 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
       }
     }
   } catch (err) {
-    hilog.info(0x0000, 'mainTag', 'Got error: %{public}s', JSON.stringify(err));
+    hilog.info(0x0000, 'mainTag', 'Got error: %{public}s %{public}s', err.toString(), JSON.stringify(err));
     ret = -1;
   }
   return ret;
