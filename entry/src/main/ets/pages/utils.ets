@@ -4,6 +4,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 
 export function readWholeFile(path: string): ArrayBuffer {
   let size = fs.statSync(path).size;
+  hilog.info(0x0000, 'mainTag', 'File %{public}s has %{public}d bytes', path, size);
   let file = fs.openSync(path, fs.OpenMode.READ_ONLY);
   let res = new Uint8Array(size);
 
@@ -57,12 +58,14 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
   let decoder = new util.TextDecoder('utf-8');
   let aStr: string = decoder.decodeToString(new Uint8Array(a));
   let bStr: string = decoder.decodeToString(new Uint8Array(b));
+  hilog.info(0x0000, 'mainTag', 'Got a: %{public}s', aStr);
+  hilog.info(0x0000, 'mainTag', 'Got b: %{public}s', bStr);
 
   // compare each line
   let aLines: string[] = aStr.split("\n");
   let bLines: string[] = bStr.split("\n");
   if (aLines.length !== bLines.length) {
-    hilog.info(0x0000, 'mainTag', 'Number of lines mismatch: %{public}d vs %{public}d', aLines, bLines);
+    hilog.info(0x0000, 'mainTag', 'Number of lines mismatch: %{public}d vs %{public}d', aLines.length, bLines.length);
     return false;
   }
 

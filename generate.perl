@@ -23,7 +23,7 @@ sub add_target {
         # -flto too slow for 527.cam4_r
         $bench_flags = $bench_flags . " -flto";
     }
-    if ($target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "521.wrf_r" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
+    if ($target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "521.wrf_r" and $target != "diffwrf_521" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
@@ -78,6 +78,9 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     } elsif ($benchmark == "521.wrf_r") {
         @sources = @{%sources{"wrf_r"}};
         add_target("521.wrf_r");
+
+        # @sources = @{%sources{"diffwrf_521"}};
+        # add_target("diffwrf_521");
     } elsif ($benchmark == "525.x264_r") {
         @sources = @{%sources{"x264_r"}};
         add_target("525.x264_r");

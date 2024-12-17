@@ -106,6 +106,7 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
         let actualFile: string = stdoutFile;
         let expectedFile: string = outputDir + "/" + validate.file;
 
+        hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
         let actual: ArrayBuffer = readWholeFile(actualFile);
         let expected: ArrayBuffer = readWholeFile(expectedFile);
         if (isEqual(actual, expected, validate.compareOption)) {
@@ -468,7 +469,14 @@ struct Index {
       } as BenchmarkConfig,
     ]);
     benchmarks.set("521.wrf_r", [
-      "",
+      {
+        args: "",
+        validates: [{
+          type: "COMMAND",
+          command: "diffwrf_521 wrfout_d01_2000-01-24_20_00_00 ../compare/wrf_reference_01",
+          file: "diffwrf_output_01.txt"
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("526.blender_r", [
       "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
