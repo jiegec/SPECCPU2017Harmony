@@ -19,7 +19,7 @@ export function readWholeFile(path: string): ArrayBuffer {
   return res;
 }
 
-export function isEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
+function isEqualBinary(a: ArrayBuffer, b: ArrayBuffer): boolean {
   if (a.byteLength != b.byteLength) {
     return false;
   }
@@ -38,10 +38,18 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
 export interface CompareOptions {
   // relative error tolerance
   relativeTolerance?: number;
+
+  // absolute error tolerance
+  absoluteTolerance?: number;
 }
 
 // mimic specdiff, allowing fp tolerance
-export function isEqualFp(a: ArrayBuffer, b: ArrayBuffer, options: CompareOptions): boolean {
+export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions): boolean {
+  // fallback to more efficient implementation
+  if (options === null || options === undefined) {
+    return isEqualBinary(a, b);
+  }
+
   // decode utf-8
   let decoder = new util.TextDecoder('utf-8');
   let aStr: string = decoder.decodeToString(new Uint8Array(a));
@@ -73,8 +81,17 @@ export function isEqualFp(a: ArrayBuffer, b: ArrayBuffer, options: CompareOption
       if (!isNaN(aFloat) && !isNaN(bFloat)) {
         // fp
         // check relative error
-        if (Math.abs(aFloat - bFloat) / aFloat > (options.relativeTolerance ?? 0.0)) {
-          return false;
+        if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
+          if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
+            return false;
+          }
+        }
+
+        // check absolute error
+        if (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined) {
+          if (Math.abs(aFloat - bFloat) > options!.absoluteTolerance!) {
+            return false;
+          }
         }
       } else if (aPart !== bPart) {
         return false;

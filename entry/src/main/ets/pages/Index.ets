@@ -4,38 +4,31 @@ import testNapi from 'libentry.so';
 import fs from '@ohos.file.fs';
 import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
-import { isEqual, isEqualFp, readWholeFile, CompareOptions } from './utils.ets';
+import { isEqual, readWholeFile, CompareOptions } from './utils.ets';
 import { promptAction } from '@kit.ArkUI';
-
-interface CommandValidateConfig {
-  // command to run
-  command: string;
-
-  // the file to be compared against the stdout of the command
-  file: string;
-
-  // fp compare option
-  compareOption: CompareOptions;
-}
 
 interface ValidateConfig {
   // stdout validation, compare stdout and specified file under output folder
   // file validation, compare two files with the same file name under input and output folders
   // command validation, run custom command to validate the output
-  type: "SKIPPED" | "STDOUT" | "FILE" | "COMMAND";
+  type: "STDOUT" | "FILE" | "COMMAND";
 
   // stdout/file validation
   file?: string;
 
-  // command validation
-  commands?: CommandValidateConfig[];
+  // fp compare option for stdout/file validation
+  compareOption?: CompareOptions;
+
+  // command to run for validation
+  command?: string;
 }
 
 interface BenchmarkConfig {
   // command argv
   args: string;
+
   // how to validate output
-  validate: ValidateConfig;
+  validates: ValidateConfig[];
 }
 
 type Benchmark = string | BenchmarkConfig;
@@ -58,8 +51,8 @@ function findBestCore(): number {
 }
 
 @Concurrent
-function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validate: ValidateConfig): number {
-  hilog.info(0x0000, 'mainTag', 'Enter worker: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d, %{public}s', inputDir, outputDir, stdinFile, benchmark, JSON.stringify(args), core, JSON.stringify(validate));
+function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validates: ValidateConfig[]): number {
+  hilog.info(0x0000, 'mainTag', 'Enter worker: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d, %{public}s', inputDir, outputDir, stdinFile, benchmark, JSON.stringify(args), core, JSON.stringify(validates));
   let ret: number = -1;
   try {
     // run benchmark
@@ -74,26 +67,27 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
     if (ret < 0) {
       return ret;
     }
-    
-    // validation
-    if (validate.type === "STDOUT" || validate.type === "FILE") {
-      // compare two files
-      let expectedFile: string = outputDir + "/" + validate.file!;
-      let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
-      hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
 
-      let actual: ArrayBuffer = readWholeFile(actualFile);
-      let expected: ArrayBuffer = readWholeFile(expectedFile);
-      if (isEqual(actual, expected)) {
-        hilog.info(0x0000, 'mainTag', 'Validation passed: %{public}d bytes', actual.byteLength);
-      } else {
-        hilog.info(0x0000, 'mainTag', 'Validation failed');
-        ret = -1;
-      }
-    } else if (validate.type === "COMMAND") {
-      // run command, and then compare its stdout to file
-      for (let command of validate.commands!) {
-        let parts = command.command.split(" ");
+    for (let validate of validates) {
+      // validation
+      if (validate.type === "STDOUT" || validate.type === "FILE") {
+        // compare two files
+        let expectedFile: string = outputDir + "/" + validate.file!;
+        let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
+        hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
+
+        let actual: ArrayBuffer = readWholeFile(actualFile);
+        let expected: ArrayBuffer = readWholeFile(expectedFile);
+        if (isEqual(actual, expected, validate.compareOption)) {
+          hilog.info(0x0000, 'mainTag', 'Validation passed: %{public}d bytes', actual.byteLength);
+        } else {
+          hilog.info(0x0000, 'mainTag', 'Validation failed');
+          ret = -1;
+          break;
+        }
+      } else if (validate.type === "COMMAND") {
+        // run command, and then compare its stdout to file
+        let parts = validate.command!.split(" ");
         let validator = parts[0];
         let validator_args = parts.slice(1);
         let stdoutFile: string = inputDir + "/validate-stdout.log";
@@ -110,11 +104,11 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
 
         // compare stdout and expected
         let actualFile: string = stdoutFile;
-        let expectedFile: string = outputDir + "/" + command.file;
+        let expectedFile: string = outputDir + "/" + validate.file;
 
         let actual: ArrayBuffer = readWholeFile(actualFile);
         let expected: ArrayBuffer = readWholeFile(expectedFile);
-        if (isEqualFp(actual, expected, command.compareOption)) {
+        if (isEqual(actual, expected, validate.compareOption)) {
           hilog.info(0x0000, 'mainTag', 'Validation passed: %{public}d bytes', actual.byteLength);
         } else {
           hilog.info(0x0000, 'mainTag', 'Validation failed');
@@ -183,88 +177,88 @@ struct Index {
     benchmarks.set("500.perlbench_r", [
       { 
         args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "checkspam.2500.5.25.11.150.1.1.1.1.out",
-        }
+        }],
       } as BenchmarkConfig,
       {
         args: "-I./lib diffmail.pl 4 800 10 17 19 300",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "diffmail.4.800.10.17.19.300.out",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "-I./lib splitmail.pl 6400 12 26 16 100 0",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "splitmail.6400.12.26.16.100.0.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("502.gcc_r", [
       {
         args: "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "gcc-smaller.opts-O3_-fipa-pta.s",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "ref32.c -O5 -o ref32.opts-O5.s",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "ref32.opts-O5.s",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("505.mcf_r", [
       {
         args: "inp.in",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "inp.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("520.omnetpp_r", [
       {
         args: "-c General -r 0",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "General-0.sca",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("523.xalancbmk_r", [
       {
         args: "-v t5.xml xalanc.xsl",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "ref-t5.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("525.x264_r", [
@@ -272,80 +266,103 @@ struct Index {
       "--pass 2 --stats x264_stats.log --bitrate 1000 --dumpyuv 200 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
       {
         args: "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
-        validate: {
-          type: "COMMAND",
-          commands: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
-            return {
-              command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame + ".yuv ../compare/frame_" + frame + ".org.tga",
-              file: "imagevalidate_frame_" + frame + ".out",
-              compareOption: {
-                relativeTolerance: 0.085,
-              } as CompareOptions,
-            } as CommandValidateConfig;
-          }),
-        },
+        validates: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
+          return {
+            type: "COMMAND",
+            command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame + ".yuv ../compare/frame_" + frame + ".org.tga",
+            file: "imagevalidate_frame_" + frame + ".out",
+            compareOption: {
+              relativeTolerance: 0.085,
+            } as CompareOptions,
+          } as ValidateConfig;
+        }),
       }
     ]);
     benchmarks.set("531.deepsjeng_r", [
       {
         args: "ref.txt",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "ref.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("541.leela_r", [
       {
         args: "ref.sgf",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "ref.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("548.exchange2_r", [
       {
         args: "6",
-        validate: {
+        validates: [{
           type: "FILE",
           file: "s.txt",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
     benchmarks.set("557.xz_r", [
       {
         args: "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "cld.tar-160-6.out",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "cpu2006docs.tar-250-6e.out",
-        },
+        }],
       } as BenchmarkConfig,
       {
         args: "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7",
-        validate: {
+        validates: [{
           type: "STDOUT",
           file: "input.combined-250-7.out",
-        },
+        }],
       } as BenchmarkConfig,
     ]);
 
     // fp rate
-    benchmarks.set("503.bwaves_r", [
-      "bwaves_1 < bwaves_1.in",
-      "bwaves_2 < bwaves_2.in",
-      "bwaves_3 < bwaves_3.in",
-      "bwaves_4 < bwaves_4.in",
-    ]);
+    benchmarks.set("503.bwaves_r", [1, 2, 3, 4].map((i) => {
+      return {
+        args: "bwaves_" + i + " < bwaves_" + i + ".in",
+        validates: [{
+          type: "STDOUT",
+          file: "bwaves_" + i + ".out",
+          compareOption: {
+            absoluteTolerance: 1e-16,
+            relativeTolerance: 0.015,
+          }
+        }],
+      } as BenchmarkConfig;
+    }));
     benchmarks.set("507.cactuBSSN_r", [
-      "spec_ref.par",
+      {
+        args: "spec_ref.par",
+        validates: [{
+          type: "STDOUT",
+          file: "spec_ref.out",
+        }, {
+          type: "FILE",
+          file: "gxx.xl",
+          compareOption: {
+            absoluteTolerance: 5e-13,
+          }
+        }, {
+          type: "FILE",
+          file: "gxy.xl",
+          compareOption: {
+            absoluteTolerance: 5e-13,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("508.namd_r", [
       "--input apoa1.input --output apoa1.ref.output --iterations 65",
@@ -447,7 +464,7 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "), core, { type: "SKIPPED" } as ValidateConfig);
+          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "), core, []);
         await taskpool.execute(task);
       }
 
@@ -461,12 +478,12 @@ struct Index {
       for (let b of benchmarks.get(benchmark)!) {
         index += 1;
         let arg: string;
-        let validate: ValidateConfig = { type: "SKIPPED" };
+        let validates: ValidateConfig[] = [];
         if (typeof b === "string") {
           arg = b;
         } else {
           arg = (b as BenchmarkConfig).args;
-          validate = (b as BenchmarkConfig).validate;
+          validates = (b as BenchmarkConfig).validates;
         }
 
         this.log += "Run benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
@@ -479,7 +496,7 @@ struct Index {
           args.pop();
         }
 
-        let task: taskpool.Task = new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validate);
+        let task: taskpool.Task = new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validates);
         let time: number = await taskpool.execute(task) as number;
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
@@ -493,7 +510,7 @@ struct Index {
           arg, time.toString());
         this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
 
-        if (validate.type !== "SKIPPED") {
+        if (validates.length > 0) {
           this.log += "Output validation passed for " + benchmark + " #" + index + "\n";
         }
 
