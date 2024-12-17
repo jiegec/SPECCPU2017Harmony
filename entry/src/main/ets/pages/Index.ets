@@ -158,7 +158,7 @@ struct Index {
         },
       } as BenchmarkConfig,
       {
-        args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s"
+        args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
         validate: {
           type: "FILE",
           file: "ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
