@@ -8,20 +8,17 @@ sub add_target {
     {
         $source =~ s{\*$}{};
     }
-    if ($target == "diffwrf_521") {
+    @additional_sources = ();
+    if ($target eq "diffwrf_521") {
         # add missing sources due to split module folder
-        push(@sources, "module_cam_shr_const_mod.F90");
-        push(@sources, "module_cam_shr_kind_mod.F90");
-        push(@sources, "module_gfs_machine.F90");
-        push(@sources, "module_gfs_physcons.F90");
-        push(@sources, "ESMF_Fraction.F90 ");
+        @additional_sources = ("module_cam_shr_const_mod.F90", "module_cam_shr_kind_mod.F90", "module_gfs_machine.F90", "module_gfs_physcons.F90", "ESMF_Fraction.F90");
     }
-    print(FH "add_library(", $target, " SHARED ", (join " ", @sources) , ")\n");
+    print(FH "add_library(", $target, " SHARED ", (join " ", @sources) , " ", (join " ", @additional_sources), ")\n");
 
     # add more flags
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
-    if ($target != "502.gcc_r" and $target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "510.parest_r" and $target != "521.wrf_r" and $target != "526.blender_r" and $target != "527.cam4_r" and $enable_lto) {
+    if ($target ne "502.gcc_r" and $target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "510.parest_r" and $target ne "521.wrf_r" and $target ne "526.blender_r" and $target ne "527.cam4_r" and $target ne "554.roms_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
         # -flto optimizes main function away for 503.bwaves_r
         # -flto incompatible llvm version for 507.cactuBSSN_r
@@ -29,21 +26,22 @@ sub add_target {
         # -flto too slow for 521.wrf_r
         # -flto too slow for 526.blender_r
         # -flto too slow for 527.cam4_r
+        # -flto optimizes function away for 554.roms_r
         $bench_flags = $bench_flags . " -flto";
     }
-    if ($target != "503.bwaves_r" and $target != "507.cactuBSSN_r" and $target != "521.wrf_r" and $target != "diffwrf_521" and $target != "527.cam4_r" and $target != "548.exchange2_r" and $target != "549.fotonik3d_r" and $target != "554.nab_r") {
+    if ($target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "521.wrf_r" and $target ne "diffwrf_521" and $target ne "527.cam4_r" and $target ne "548.exchange2_r" and $target ne "549.fotonik3d_r" and $target ne "554.roms_r") {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
-    if ($target == "521.wrf_r") {
+    if ($target eq "521.wrf_r") {
         $bench_cflags = $bench_cflags . " -DSPEC_CASE_FLAG";
         # fix crash due to little endian
         $bench_fflags = $bench_fflags . " -fconvert=big-endian";
     }
-    if ($target == "527.cam4_r") {
+    if ($target eq "527.cam4_r") {
         $bench_cflags = $bench_cflags . " -DSPEC_CASE_FLAG";
     }
-    if ($target == "554.roms_r") {
+    if ($target eq "554.roms_r") {
         # fix compilation
         $bench_flags = $bench_flags . " -DNDEBUG";
     }
@@ -82,19 +80,19 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     mkdir("entry/src/main/cpp/" . $benchmark);
     system("cp -arv ./benchspec/CPU/" . $benchmark . "/src/* entry/src/main/cpp/" . $benchmark . "/");
     open(FH, '>', "entry/src/main/cpp/" . $benchmark . "/CMakeLists.txt") or die $!;
-    if ($benchmark == "511.povray_r") {
+    if ($benchmark eq "511.povray_r") {
         @sources = @{%sources{"povray_r"}};
         add_target("511.povray_r");
         
         @sources = @{%sources{"imagevalidate_511"}};
         add_target("imagevalidate_511");
-    } elsif ($benchmark == "521.wrf_r") {
+    } elsif ($benchmark eq "521.wrf_r") {
         @sources = @{%sources{"wrf_r"}};
         add_target("521.wrf_r");
 
         @sources = @{%sources{"diffwrf_521"}};
         add_target("diffwrf_521");
-    } elsif ($benchmark == "525.x264_r") {
+    } elsif ($benchmark eq "525.x264_r") {
         @sources = @{%sources{"x264_r"}};
         add_target("525.x264_r");
         
@@ -103,20 +101,20 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
 
         @sources = @{%sources{"imagevalidate_525"}};
         add_target("imagevalidate_525");
-    } elsif ($benchmark == "526.blender_r") {
+    } elsif ($benchmark eq "526.blender_r") {
         @sources = @{%sources{"blender_r"}};
         add_target("526.blender_r");
-    } elsif ($benchmark == "527.cam4_r") {
+    } elsif ($benchmark eq "527.cam4_r") {
         @sources = @{%sources{"cam4_r"}};
         add_target("527.cam4_r");
-    } elsif ($benchmark == "538.imagick_r") {
+    } elsif ($benchmark eq "538.imagick_r") {
         @sources = @{%sources{"imagick_r"}};
         add_target("538.imagick_r");
     } else {
         add_target($benchmark);
     }
 
-    if ($benchmark == "549.fotonik3d_r") {
+    if ($benchmark eq "549.fotonik3d_r") {
         # extract OBJ.dat.xz for input
         system("xz -d -k ./benchspec/CPU/549.fotonik3d_r/data/refrate/input/OBJ.dat.xz");
     }

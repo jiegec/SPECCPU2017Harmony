@@ -45,6 +45,9 @@ export interface CompareOptions {
 
   // absolute error tolerance
   absoluteTolerance?: number;
+
+  // collapse whitespace
+  collapseWhitespace?: boolean;
 }
 
 // mimic specdiff, allowing fp tolerance
@@ -75,6 +78,16 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
 
     let aParts: string[] = aLine.split(" ");
     let bParts: string[] = bLine.split(" ");
+    if (options.collapseWhitespace) {
+      // drop empty strings
+      aParts = aParts.filter((part) => {
+          return part.length > 0;
+      });
+      bParts = bParts.filter((part) => {
+          return part.length > 0;
+      });
+    }
+
     if (aParts.length !== bParts.length) {
       hilog.info(0x0000, 'mainTag', 'Number of parts mismatch: %{public}d vs %{public}d', aParts.length, bParts.length);
       return false;
@@ -89,28 +102,29 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
       if (!isNaN(aFloat) && !isNaN(bFloat)) {
         // fp
         // either one within error is okay
-
-        // check relative error
-        let relativePass: boolean = false;
-        if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
-          relativePass = true;
-          if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
-            relativePass = false;
+        if ((options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) || (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined)) {
+          // check relative error
+          let relativePass: boolean = false;
+          if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
+            relativePass = true;
+            if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
+              relativePass = false;
+            }
           }
-        }
 
-        // check absolute error
-        let absolutePass: boolean = false;
-        if (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined) {
-          absolutePass = true;
-          if (Math.abs(aFloat - bFloat) > options!.absoluteTolerance!) {
-            absolutePass = false;
+          // check absolute error
+          let absolutePass: boolean = false;
+          if (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined) {
+            absolutePass = true;
+            if (Math.abs(aFloat - bFloat) > options!.absoluteTolerance!) {
+              absolutePass = false;
+            }
           }
-        }
 
-        if (!relativePass && !absolutePass) {
-          hilog.info(0x0000, 'mainTag', 'Relative/absolute tolerance violated: %{public}s vs %{public}s from %{public}s and %{public}s', aFloat.toString(), bFloat.toString(), aLine, bLine);
-          return false;
+          if (!relativePass && !absolutePass) {
+            hilog.info(0x0000, 'mainTag', 'Relative/absolute tolerance violated: %{public}s vs %{public}s from %{public}s and %{public}s', aFloat.toString(), bFloat.toString(), aLine, bLine);
+            return false;
+          }
         }
       } else if (aPart !== bPart) {
         hilog.info(0x0000, 'mainTag', 'Part mismatch: %{public}s vs %{public}s', aPart, bPart);

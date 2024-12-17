@@ -474,7 +474,10 @@ struct Index {
         validates: [{
           type: "COMMAND",
           command: "diffwrf_521 wrfout_d01_2000-01-24_20_00_00 ../compare/wrf_reference_01",
-          file: "diffwrf_output_01.txt"
+          file: "diffwrf_output_01.txt",
+          compareOption: {
+            collapseWhitespace: true,
+          }
         }],
       } as BenchmarkConfig,
     ]);
