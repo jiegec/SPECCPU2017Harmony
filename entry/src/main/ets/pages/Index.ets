@@ -523,11 +523,11 @@ struct Index {
       for (let benchmark of result.keys()) {
         let ratio: number = reftime.get(benchmark)!
         / result.get(benchmark)!;
-        this.log += benchmark + " 1 " + result.get(benchmark) + " " + ratio + " *\n";
+        this.log += benchmark + " 1 " + result.get(benchmark)!.toPrecision(3) + " " + ratio.toPrecision(3) + " *\n";
         ratios.push(ratio);
         geomean *= ratio;
       }
-      this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size) + "\n";
+      this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size).toPrecision(3) + "\n";
     }
 
     this.running = false;
