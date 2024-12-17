@@ -49,14 +49,14 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
   hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
 
   // validation
-  let validateFile: string = outputDir + "/" + validate.file!;
+  let expectedFile: string = outputDir + "/" + validate.file!;
   if (validate.type === "STDOUT" || validate.type === "FILE") {
     // compare two files
     let actualFile: string = (validate.type === "STDOUT") ? stdoutFile : (inputDir + "/" + validate.file!);
-    hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', stdoutFile, validateFile);
+    hilog.info(0x0000, 'mainTag', 'Validate %{public}s against %{public}s', actualFile, expectedFile);
 
-    let actual: string = fs.readTextSync(stdoutFile);
-    let expected: string = fs.readTextSync(validateFile);
+    let actual: string = fs.readTextSync(actualFile);
+    let expected: string = fs.readTextSync(expectedFile);
     if (actual === expected) {
       hilog.info(0x0000, 'mainTag', 'Validation passed');
     } else {
@@ -168,13 +168,31 @@ struct Index {
       } as BenchmarkConfig,
     ]);
     benchmarks.set("505.mcf_r", [
-      "inp.in"
+      {
+        args: "inp.in",
+        validate: {
+          type: "STDOUT",
+          file: "inp.out",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("520.omnetpp_r", [
-      "-c General -r 0"
+      {
+        args: "-c General -r 0",
+        validate: {
+          type: "FILE",
+          file: "General-0.sca",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("523.xalancbmk_r", [
-      "-v t5.xml xalanc.xsl"
+      {
+        args: "-v t5.xml xalanc.xsl",
+        validate: {
+          type: "FILE",
+          file: "ref-t5.out",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("525.x264_r", [
       "--pass 1 --stats x264_stats.log --bitrate 1000 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
@@ -182,18 +200,54 @@ struct Index {
       "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720"
     ]);
     benchmarks.set("531.deepsjeng_r", [
-      "ref.txt"
+      {
+        args: "ref.txt",
+        validate: {
+          type: "STDOUT",
+          file: "ref.out",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("541.leela_r", [
-      "ref.sgf"
+      {
+        args: "ref.sgf",
+        validate: {
+          type: "STDOUT",
+          file: "ref.out",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("548.exchange2_r", [
-      "6",
+      {
+        args: "6",
+        validate: {
+          type: "FILE",
+          file: "s.txt",
+        },
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("557.xz_r", [
-      "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
-      "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
-      "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7"
+      {
+        args: "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
+        validate: {
+          type: "STDOUT",
+          file: "cld.tar-160-6.out",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
+        validate: {
+          type: "STDOUT",
+          file: "cpu2006docs.tar-250-6e.out",
+        },
+      } as BenchmarkConfig,
+      {
+        args: "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7",
+        validate: {
+          type: "STDOUT",
+          file: "input.combined-250-7.out",
+        },
+      } as BenchmarkConfig,
     ]);
 
     // fp rate
@@ -275,6 +329,7 @@ struct Index {
     this.log += "Found fastest core is " + core + "\n";
 
     let result: Map<string, number> = new Map();
+    let failed: boolean = false;
     for (let benchmark of filter) {
       this.log += "Run benchmark " + benchmark + "\n";
       hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
@@ -315,7 +370,6 @@ struct Index {
 
       // run benchmark in background
       let totalTime: number = 0;
-      let failed: boolean = false;
       let index: number = 0;
       for (let b of benchmarks.get(benchmark)!) {
         index += 1;
@@ -356,7 +410,7 @@ struct Index {
       }
       
       if (failed) {
-        continue;
+        break;
       }
 
       let ratio: number = reftime.get(benchmark)!
@@ -367,19 +421,23 @@ struct Index {
       result.set(benchmark, totalTime);
     }
 
-    // print summary
-    this.log += "Summary:\n";
-    let ratios: number[] = [];
-    let geomean = 1.0;
-    this.log += "=================================================================================\n";
-    for (let benchmark of result.keys()) {
-      let ratio: number = reftime.get(benchmark)!
-      / result.get(benchmark)!;
-      this.log += benchmark + " 1 " + result.get(benchmark) + " " + ratio + " *\n";
-      ratios.push(ratio);
-      geomean *= ratio;
+    if (failed) {
+      this.log += "Aborted due to failure\n";
+    } else {
+      // print summary
+      this.log += "Summary:\n";
+      let ratios: number[] = [];
+      let geomean = 1.0;
+      this.log += "=================================================================================\n";
+      for (let benchmark of result.keys()) {
+        let ratio: number = reftime.get(benchmark)!
+        / result.get(benchmark)!;
+        this.log += benchmark + " 1 " + result.get(benchmark) + " " + ratio + " *\n";
+        ratios.push(ratio);
+        geomean *= ratio;
+      }
+      this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size) + "\n";
     }
-    this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size) + "\n";
   }
 
   @Builder

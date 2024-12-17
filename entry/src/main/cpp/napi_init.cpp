@@ -108,7 +108,9 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   std::string stdin_file = get_str(env, args[1]);
   std::string stdout_file = get_str(env, args[2]);
   std::string stderr_file = get_str(env, args[3]);
-  OH_LOG_INFO(LOG_APP, "Redirect stdin to %{public}s", stdin_file.c_str());
+  if (stdin_file.size() > 0) {
+    OH_LOG_INFO(LOG_APP, "Redirect stdin to %{public}s", stdin_file.c_str());
+  }
   OH_LOG_INFO(LOG_APP, "Redirect stdout to %{public}s", stdout_file.c_str());
   OH_LOG_INFO(LOG_APP, "Redirect stderr to %{public}s", stderr_file.c_str());
 
