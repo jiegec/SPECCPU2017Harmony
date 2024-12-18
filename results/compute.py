@@ -93,6 +93,9 @@ with open(sys.argv[1], "w", newline="") as csvfile:
             if benchmark in scores:
                 ratios.append(scores[benchmark]["ratio"])
 
+        if len(ratios) == 0:
+            continue
+
         writer.writerow(
             {
                 "benchmark": name,
