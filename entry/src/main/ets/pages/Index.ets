@@ -482,22 +482,83 @@ struct Index {
       } as BenchmarkConfig,
     ]);
     benchmarks.set("526.blender_r", [
-      "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
+      {
+        args: "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
+        validates: [{
+          type: "COMMAND",
+          command: "imagevalidate_526 -avg -threshold 0.75 -maxthreshold 0.01 sh3_no_char_0849.tga ../compare/sh3_no_char_0849.org.tga",
+          file: "imagevalidate_sh3_no_char_0849.out",
+          compareOption: {
+            relativeTolerance: 0.05,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("527.cam4_r", [
-      "",
+      {
+        args: "",
+        validates: [{
+          type: "COMMAND",
+          command: "cam4_validate_527_base.none 10 0.0035 ../compare/h0_ctrl.nc h0.nc",
+          file: "cam4_validate.txt",
+          compareOption: {
+            collapseWhitespace: true,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("538.imagick_r", [
-      "-limit disk 0 refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga",
+      {
+        args: "-limit disk 0 refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga",
+        validates: [{
+          type: "COMMAND",
+          command: "imagevalidate_538 -avg -threshold 0.95 -maxthreshold 0.001 refrate_output.tga ../compare/refrate_expected.tga",
+          file: "refrate_validate.out",
+          compareOption: {
+            relativeTolerance: 0.01,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("544.nab_r", [
-      "1am0 1122214447 122",
+      {
+        args: "1am0 1122214447 122",
+        validates: [{
+          type: "STDOUT",
+          file: "1am0.out",
+          compareOption: {
+            relativeTolerance: 0.01,
+            skipRelativeTolerance: 2
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("549.fotonik3d_r", [
-      "",
+      {
+        args: "",
+        validates: [{
+          type: "FILE",
+          file: "pscyee.out",
+          compareOption: {
+            absoluteTolerance: 1e-27,
+            relativeTolerance: 1e-10,
+            // TODO: off-by-one --obiwan
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
     benchmarks.set("554.roms_r", [
-      "< ocean_benchmark2.in.x",
+      {
+        args: "< ocean_benchmark2.in.x",
+        validates: [{
+          type: "STDOUT",
+          file: "ocean_benchmark2.log",
+          compareOption: {
+            absoluteTolerance: 1e-07,
+            relativeTolerance: 1e-07,
+          }
+        }],
+      } as BenchmarkConfig,
     ]);
 
     // from data/refrate/reftime

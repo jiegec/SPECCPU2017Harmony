@@ -41,12 +41,19 @@ function isEqualBinary(a: ArrayBuffer, b: ArrayBuffer): boolean {
 
 export interface CompareOptions {
   // relative error tolerance
+  // --reltol
   relativeTolerance?: number;
 
+  // skip the first occurrences of relative error violation
+  // --skipreltol
+  skipRelativeTolerance?: number;
+
   // absolute error tolerance
+  // --abstol
   absoluteTolerance?: number;
 
   // collapse whitespace
+  // --cw
   collapseWhitespace?: boolean;
 }
 
@@ -71,6 +78,8 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
     hilog.info(0x0000, 'mainTag', 'Number of lines mismatch: %{public}d vs %{public}d', aLines.length, bLines.length);
     return false;
   }
+
+  let skippedRelativeTolerance: number = 0;
 
   for (let i = 0;i < aLines.length;i++) {
     let aLine: string = aLines[i];
@@ -108,7 +117,15 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
           if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
             relativePass = true;
             if (Math.abs(aFloat - bFloat) / aFloat > options!.relativeTolerance!) {
-              relativePass = false;
+              // handle --skipreltol
+              if (options!.skipRelativeTolerance !== null && options!.skipRelativeTolerance !== undefined) {
+                skippedRelativeTolerance += 1;
+                if (skippedRelativeTolerance > options!.skipRelativeTolerance) {
+                  relativePass = true;
+                }
+              } else {
+                relativePass = false;
+              }
             }
           }
 

@@ -29,7 +29,7 @@ sub add_target {
         # -flto optimizes function away for 554.roms_r
         $bench_flags = $bench_flags . " -flto";
     }
-    if ($target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "521.wrf_r" and $target ne "diffwrf_521" and $target ne "527.cam4_r" and $target ne "548.exchange2_r" and $target ne "549.fotonik3d_r" and $target ne "554.roms_r") {
+    if ($target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "521.wrf_r" and $target ne "diffwrf_521" and $target ne "527.cam4_r" and $target ne "cam4_validate_527" and $target ne "548.exchange2_r" and $target ne "549.fotonik3d_r" and $target ne "554.roms_r") {
         # flang does not support -Wno-error and -fcommon
         $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
     }
@@ -83,7 +83,7 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     if ($benchmark eq "511.povray_r") {
         @sources = @{%sources{"povray_r"}};
         add_target("511.povray_r");
-        
+
         @sources = @{%sources{"imagevalidate_511"}};
         add_target("imagevalidate_511");
     } elsif ($benchmark eq "521.wrf_r") {
@@ -95,7 +95,7 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     } elsif ($benchmark eq "525.x264_r") {
         @sources = @{%sources{"x264_r"}};
         add_target("525.x264_r");
-        
+
         @sources = @{%sources{"ldecod_r"}};
         add_target("ldecod_r");
 
@@ -104,12 +104,21 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
     } elsif ($benchmark eq "526.blender_r") {
         @sources = @{%sources{"blender_r"}};
         add_target("526.blender_r");
+
+        @sources = @{%sources{"imagevalidate_526"}};
+        add_target("imagevalidate_526");
     } elsif ($benchmark eq "527.cam4_r") {
         @sources = @{%sources{"cam4_r"}};
         add_target("527.cam4_r");
+
+        @sources = @{%sources{"cam4_validate_527"}};
+        add_target("cam4_validate_527");
     } elsif ($benchmark eq "538.imagick_r") {
         @sources = @{%sources{"imagick_r"}};
         add_target("538.imagick_r");
+
+        @sources = @{%sources{"imagevalidate_538"}};
+        add_target("imagevalidate_538");
     } else {
         add_target($benchmark);
     }
