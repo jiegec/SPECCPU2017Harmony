@@ -13,5 +13,4 @@ C/C++ code is compiled with current clang version (15.0.4) from HarmonyOS SDK. F
 	- 521.wrf_r
 	- 526.blender_r
 	- 527.cam4_r
-	- 554.roms_r
 - others: -O3 -flto -march=armv8.a+sve
