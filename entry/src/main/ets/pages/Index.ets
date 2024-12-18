@@ -6,6 +6,7 @@ import { taskpool } from '@kit.ArkTS';
 import { pasteboard } from '@kit.BasicServicesKit';
 import { isEqual, readWholeFile, CompareOptions } from './utils.ets';
 import { promptAction } from '@kit.ArkUI';
+import { thermal } from '@kit.BasicServicesKit';
 
 interface ValidateConfig {
   // stdout validation, compare stdout and specified file under output folder
@@ -164,6 +165,27 @@ let fp_rate = [
 struct Index {
   @State log: string = '';
   @State running: boolean = false;
+
+  onPageShow() {
+    thermal.registerThermalLevelCallback((level: thermal.ThermalLevel) => {
+      // https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V5/js-apis-thermal-V5#thermallevel
+      let levels = [
+        "COOL",
+        "NORMAL",
+        "WARM",
+        "HOT",
+        "OVERHEATED",
+        "WARNING",
+        "EMERGENCY",
+        "ESCAPE"
+      ];
+      this.log += "Thermal level is: " + levels[level] + "\n";
+    });
+  }
+
+  onPageHide() {
+    thermal.unregisterThermalLevelCallback();
+  }
 
   async runBenchmarks(filter: string[]) {
     if (this.running) {

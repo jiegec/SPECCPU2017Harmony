@@ -7,6 +7,8 @@ Due to fluctuations in performance, we offer two types of benchmark runs:
 1. [Full Run](./full/): Executes all benchmarks sequentially, resulting in less favorable thermal conditions.
 2. [Best Run](./best/): Allows each benchmark to be run individually, ensuring optimal thermal conditions.
 
+For integer benchmarks, the best run is slightly faster than the full run. For floating-point benchmarks, however, the best run is over 20% faster than the full run, likely due to the increased heat generation.
+
 Note: Placing the device in a refrigerator is strictly prohibited.
 
 The C/C++ code is compiled using the current Clang version (15.0.4) from the HarmonyOS SDK. The Fortran code is compiled with the latest Flang-20 version from the LLVM APT repository. The following optimization flags are used:
