@@ -76,8 +76,10 @@ with open(sys.argv[1], "w", newline="") as csvfile:
     writer.writeheader()
 
     for name, rate in [("int_rate", int_rate), ("fp_rate", fp_rate)]:
+        sum_time = 0
         for benchmark in rate:
             if benchmark in scores:
+                sum_time += scores[benchmark]["time"]
                 writer.writerow(
                     {
                         "benchmark": benchmark,
@@ -94,7 +96,7 @@ with open(sys.argv[1], "w", newline="") as csvfile:
         writer.writerow(
             {
                 "benchmark": name,
-                "time": "0",
+                "time": round(sum_time),
                 "ratio": "{:.2f}".format(statistics.geometric_mean(ratios)),
             }
         )
