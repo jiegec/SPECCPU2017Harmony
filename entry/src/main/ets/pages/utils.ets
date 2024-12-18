@@ -81,7 +81,7 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
 
   let skippedRelativeTolerance: number = 0;
 
-  for (let i = 0;i < aLines.length;i++) {
+  for (let i = 0; i < aLines.length; i++) {
     let aLine: string = aLines[i];
     let bLine: string = bLines[i];
 
@@ -90,19 +90,20 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
     if (options.collapseWhitespace) {
       // drop empty strings
       aParts = aParts.filter((part) => {
-          return part.length > 0;
+        return part.length > 0;
       });
       bParts = bParts.filter((part) => {
-          return part.length > 0;
+        return part.length > 0;
       });
     }
 
     if (aParts.length !== bParts.length) {
-      hilog.info(0x0000, 'mainTag', 'Number of parts mismatch in line %{public}d: %{public}d vs %{public}d', i, aParts.length, bParts.length);
+      hilog.info(0x0000, 'mainTag', 'Number of parts mismatch in line %{public}d: %{public}d vs %{public}d', i,
+        aParts.length, bParts.length);
       return false;
     }
 
-    for (let j = 0;j < aParts.length;j++) {
+    for (let j = 0; j < aParts.length; j++) {
       let aPart: string = aParts[j];
       let bPart: string = bParts[j];
 
@@ -111,7 +112,8 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
       if (!isNaN(aFloat) && !isNaN(bFloat)) {
         // fp
         // either one within error is okay
-        if ((options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) || (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined)) {
+        if ((options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) ||
+          (options!.absoluteTolerance !== null && options!.absoluteTolerance !== undefined)) {
           // check relative error
           let relativePass: boolean = false;
           if (options!.relativeTolerance !== null && options!.relativeTolerance !== undefined) {
@@ -139,7 +141,9 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
           }
 
           if (!relativePass && !absolutePass) {
-            hilog.info(0x0000, 'mainTag', 'Relative/absolute tolerance violated: %{public}s vs %{public}s from %{public}s and %{public}s', aFloat.toString(), bFloat.toString(), aLine, bLine);
+            hilog.info(0x0000, 'mainTag',
+              'Relative/absolute tolerance violated: %{public}s vs %{public}s from %{public}s and %{public}s',
+              aFloat.toString(), bFloat.toString(), aLine, bLine);
             return false;
           }
         }

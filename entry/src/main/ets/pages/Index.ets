@@ -51,14 +51,18 @@ function findBestCore(): number {
 }
 
 @Concurrent
-function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number, validates: ValidateConfig[]): number {
-  hilog.info(0x0000, 'mainTag', 'Enter worker: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d, %{public}s', inputDir, outputDir, stdinFile, benchmark, JSON.stringify(args), core, JSON.stringify(validates));
+function worker(inputDir: string, outputDir: string, stdinFile: string, benchmark: string, args: string[], core: number,
+  validates: ValidateConfig[]): number {
+  hilog.info(0x0000, 'mainTag',
+    'Enter worker: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d, %{public}s', inputDir,
+    outputDir, stdinFile, benchmark, JSON.stringify(args), core, JSON.stringify(validates));
   let ret: number = -1;
   try {
     // run benchmark
     let stdoutFile: string = inputDir + "/stdout.log";
     let stderrFile: string = inputDir + "/stderr.log";
-    hilog.info(0x0000, 'mainTag', 'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
+    hilog.info(0x0000, 'mainTag',
+      'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
       inputDir, stdinFile, stdoutFile, stderrFile, benchmark, JSON.stringify(args), core);
     ret = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core);
     hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
@@ -92,7 +96,8 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
         let validator_args = parts.slice(1);
         let stdoutFile: string = inputDir + "/validate-stdout.log";
         let stderrFile: string = inputDir + "/validate-stderr.log";
-        hilog.info(0x0000, 'mainTag', 'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
+        hilog.info(0x0000, 'mainTag',
+          'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
           inputDir, "", stdoutFile, stderrFile, validator, JSON.stringify(validator_args), core);
         if (testNapi.run(inputDir, "", stdoutFile, stderrFile, validator, validator_args, core) < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed to run validation command %{public}s', validate.command!);
@@ -126,32 +131,32 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
 }
 
 let int_rate = [
-    "500.perlbench_r",
-    "502.gcc_r",
-    "505.mcf_r",
-    "520.omnetpp_r",
-    "523.xalancbmk_r",
-    "525.x264_r",
-    "531.deepsjeng_r",
-    "541.leela_r",
-    "548.exchange2_r",
-    "557.xz_r",
+  "500.perlbench_r",
+  "502.gcc_r",
+  "505.mcf_r",
+  "520.omnetpp_r",
+  "523.xalancbmk_r",
+  "525.x264_r",
+  "531.deepsjeng_r",
+  "541.leela_r",
+  "548.exchange2_r",
+  "557.xz_r",
 ];
 
 let fp_rate = [
-    "503.bwaves_r",
-    "507.cactuBSSN_r",
-    "508.namd_r",
-    "510.parest_r",
-    "511.povray_r",
-    "519.lbm_r",
-    "521.wrf_r",
-    "526.blender_r",
-    "527.cam4_r",
-    "538.imagick_r",
-    "544.nab_r",
-    "549.fotonik3d_r",
-    "554.roms_r",
+  "503.bwaves_r",
+  "507.cactuBSSN_r",
+  "508.namd_r",
+  "510.parest_r",
+  "511.povray_r",
+  "519.lbm_r",
+  "521.wrf_r",
+  "526.blender_r",
+  "527.cam4_r",
+  "538.imagick_r",
+  "544.nab_r",
+  "549.fotonik3d_r",
+  "554.roms_r",
 ];
 
 @Entry
@@ -176,7 +181,7 @@ struct Index {
     let benchmarks: Map<string, Benchmark[]> = new Map();
     // int rate
     benchmarks.set("500.perlbench_r", [
-      { 
+      {
         args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
         validates: [{
           type: "STDOUT",
@@ -270,7 +275,8 @@ struct Index {
         validates: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
           return {
             type: "COMMAND",
-            command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame + ".yuv ../compare/frame_" + frame + ".org.tga",
+            command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame +
+              ".yuv ../compare/frame_" + frame + ".org.tga",
             file: "imagevalidate_frame_" + frame + ".out",
             compareOption: {
               relativeTolerance: 0.085,
@@ -577,7 +583,7 @@ struct Index {
     reftime.set("541.leela_r", 1656);
     reftime.set("548.exchange2_r", 2620);
     reftime.set("557.xz_r", 1080);
-    
+
     // fp rate
     reftime.set("503.bwaves_r", 10028);
     reftime.set("507.cactuBSSN_r", 1266);
@@ -630,13 +636,17 @@ struct Index {
         hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
         this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
         let task: taskpool.Task =
-          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "), core, []);
+          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "),
+            core, []);
         await taskpool.execute(task);
       }
 
-      hilog.info(0x0000, 'mainTag', 'Got files under benchmark folder: %{public}s', JSON.stringify(fs.listFileSync(filesDir)));
-      hilog.info(0x0000, 'mainTag', 'Got files under input folder: %{public}s', JSON.stringify(fs.listFileSync(inputDir)));
-      hilog.info(0x0000, 'mainTag', 'Got files under output folder: %{public}s', JSON.stringify(fs.listFileSync(outputDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under benchmark folder: %{public}s',
+        JSON.stringify(fs.listFileSync(filesDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under input folder: %{public}s',
+        JSON.stringify(fs.listFileSync(inputDir)));
+      hilog.info(0x0000, 'mainTag', 'Got files under output folder: %{public}s',
+        JSON.stringify(fs.listFileSync(outputDir)));
 
       // run benchmark in background
       let totalTime: number = 0;
@@ -662,7 +672,8 @@ struct Index {
           args.pop();
         }
 
-        let task: taskpool.Task = new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validates);
+        let task: taskpool.Task =
+          new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validates);
         let time: number = await taskpool.execute(task) as number;
         if (time < 0) {
           hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
@@ -682,7 +693,7 @@ struct Index {
 
         totalTime += time;
       }
-      
+
       if (failed) {
         break;
       }
@@ -690,7 +701,8 @@ struct Index {
       let ratio: number = reftime.get(benchmark)!
       / totalTime;
       this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio + "\n";
-      hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s', benchmark,
+      hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s',
+        benchmark,
         totalTime.toString(), ratio.toString());
       result.set(benchmark, totalTime);
     }
