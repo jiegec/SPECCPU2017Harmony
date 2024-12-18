@@ -98,7 +98,7 @@ export function isEqual(a: ArrayBuffer, b: ArrayBuffer, options?: CompareOptions
     }
 
     if (aParts.length !== bParts.length) {
-      hilog.info(0x0000, 'mainTag', 'Number of parts mismatch: %{public}d vs %{public}d', aParts.length, bParts.length);
+      hilog.info(0x0000, 'mainTag', 'Number of parts mismatch in line %{public}d: %{public}d vs %{public}d', i, aParts.length, bParts.length);
       return false;
     }
 

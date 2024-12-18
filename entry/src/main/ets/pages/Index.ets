@@ -499,7 +499,7 @@ struct Index {
         args: "",
         validates: [{
           type: "COMMAND",
-          command: "cam4_validate_527_base.none 10 0.0035 ../compare/h0_ctrl.nc h0.nc",
+          command: "cam4_validate_527 10 0.0035 ../compare/h0_ctrl.nc h0.nc",
           file: "cam4_validate.txt",
           compareOption: {
             collapseWhitespace: true,
@@ -556,6 +556,9 @@ struct Index {
           compareOption: {
             absoluteTolerance: 1e-07,
             relativeTolerance: 1e-07,
+            // although not specified in Spec/object.pm,
+            // we found that the only diff was whitespaces..
+            collapseWhitespace: true,
           }
         }],
       } as BenchmarkConfig,
