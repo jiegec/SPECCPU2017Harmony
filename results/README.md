@@ -8,7 +8,6 @@ C/C++ code is compiled with current clang version (15.0.4) from HarmonyOS SDK. F
 
 - some benchmarks are built without -flto: -O3 -march=armv8.a+sve
 	- 502.gcc_r
-	- 503.bwaves_r
 	- 507.cactuBSSN_r
 	- 510.parest_r
 	- 521.wrf_r

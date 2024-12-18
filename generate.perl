@@ -18,9 +18,8 @@ sub add_target {
     # add more flags
     $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
-    if ($target ne "502.gcc_r" and $target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "510.parest_r" and $target ne "521.wrf_r" and $target ne "526.blender_r" and $target ne "527.cam4_r" and $target ne "554.roms_r" and $enable_lto) {
+    if ($target ne "502.gcc_r" and $target ne "507.cactuBSSN_r" and $target ne "510.parest_r" and $target ne "521.wrf_r" and $target ne "526.blender_r" and $target ne "527.cam4_r" and $target ne "554.roms_r" and $enable_lto) {
         # -flto miscompiles for 502.gcc_r
-        # -flto optimizes main function away for 503.bwaves_r
         # -flto incompatible llvm version for 507.cactuBSSN_r
         # -flto ICE for 510.parest_r
         # -flto too slow for 521.wrf_r
