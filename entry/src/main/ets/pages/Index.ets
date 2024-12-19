@@ -197,556 +197,560 @@ struct Index {
     }
     this.running = true;
 
-    this.log += testNapi.info() + "\n";
+    try {
+      this.log += testNapi.info() + "\n";
 
-    let context = getContext(this);
-    let benchmarks: Map<string, Benchmark[]> = new Map();
-    // int rate
-    benchmarks.set("500.perlbench_r", [
-      {
-        args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
-        validates: [{
-          type: "STDOUT",
-          file: "checkspam.2500.5.25.11.150.1.1.1.1.out",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "-I./lib diffmail.pl 4 800 10 17 19 300",
-        validates: [{
-          type: "STDOUT",
-          file: "diffmail.4.800.10.17.19.300.out",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "-I./lib splitmail.pl 6400 12 26 16 100 0",
-        validates: [{
-          type: "STDOUT",
-          file: "splitmail.6400.12.26.16.100.0.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("502.gcc_r", [
-      {
-        args: "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
-        validates: [{
-          type: "FILE",
-          file: "gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
-        validates: [{
-          type: "FILE",
-          file: "gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
-        validates: [{
-          type: "FILE",
-          file: "gcc-smaller.opts-O3_-fipa-pta.s",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "ref32.c -O5 -o ref32.opts-O5.s",
-        validates: [{
-          type: "FILE",
-          file: "ref32.opts-O5.s",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
-        validates: [{
-          type: "FILE",
-          file: "ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("505.mcf_r", [
-      {
-        args: "inp.in",
-        validates: [{
-          type: "STDOUT",
-          file: "inp.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("520.omnetpp_r", [
-      {
-        args: "-c General -r 0",
-        validates: [{
-          type: "FILE",
-          file: "General-0.sca",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("523.xalancbmk_r", [
-      {
-        args: "-v t5.xml xalanc.xsl",
-        validates: [{
-          type: "STDOUT",
-          file: "ref-t5.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("525.x264_r", [
-      "--pass 1 --stats x264_stats.log --bitrate 1000 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
-      "--pass 2 --stats x264_stats.log --bitrate 1000 --dumpyuv 200 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
-      {
-        args: "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
-        validates: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
-          return {
-            type: "COMMAND",
-            command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame +
-              ".yuv ../compare/frame_" + frame + ".org.tga",
-            file: "imagevalidate_frame_" + frame + ".out",
+      let context = getContext(this);
+      let benchmarks: Map<string, Benchmark[]> = new Map();
+      // int rate
+      benchmarks.set("500.perlbench_r", [
+        {
+          args: "-I./lib checkspam.pl 2500 5 25 11 150 1 1 1 1",
+          validates: [{
+            type: "STDOUT",
+            file: "checkspam.2500.5.25.11.150.1.1.1.1.out",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "-I./lib diffmail.pl 4 800 10 17 19 300",
+          validates: [{
+            type: "STDOUT",
+            file: "diffmail.4.800.10.17.19.300.out",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "-I./lib splitmail.pl 6400 12 26 16 100 0",
+          validates: [{
+            type: "STDOUT",
+            file: "splitmail.6400.12.26.16.100.0.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("502.gcc_r", [
+        {
+          args: "gcc-pp.c -O3 -finline-limit=0 -fif-conversion -fif-conversion2 -o gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
+          validates: [{
+            type: "FILE",
+            file: "gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "gcc-pp.c -O2 -finline-limit=36000 -fpic -o gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
+          validates: [{
+            type: "FILE",
+            file: "gcc-pp.opts-O2_-finline-limit_36000_-fpic.s",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "gcc-smaller.c -O3 -fipa-pta -o gcc-smaller.opts-O3_-fipa-pta.s",
+          validates: [{
+            type: "FILE",
+            file: "gcc-smaller.opts-O3_-fipa-pta.s",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "ref32.c -O5 -o ref32.opts-O5.s",
+          validates: [{
+            type: "FILE",
+            file: "ref32.opts-O5.s",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "ref32.c -O3 -fselective-scheduling -fselective-scheduling2 -o ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
+          validates: [{
+            type: "FILE",
+            file: "ref32.opts-O3_-fselective-scheduling_-fselective-scheduling2.s",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("505.mcf_r", [
+        {
+          args: "inp.in",
+          validates: [{
+            type: "STDOUT",
+            file: "inp.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("520.omnetpp_r", [
+        {
+          args: "-c General -r 0",
+          validates: [{
+            type: "FILE",
+            file: "General-0.sca",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("523.xalancbmk_r", [
+        {
+          args: "-v t5.xml xalanc.xsl",
+          validates: [{
+            type: "STDOUT",
+            file: "ref-t5.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("525.x264_r", [
+        "--pass 1 --stats x264_stats.log --bitrate 1000 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
+        "--pass 2 --stats x264_stats.log --bitrate 1000 --dumpyuv 200 --frames 1000 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
+        {
+          args: "--seek 500 --dumpyuv 200 --frames 1250 -o BuckBunny_New.264 BuckBunny.yuv 1280x720",
+          validates: [200, 400, 600, 700, 800, 900, 999, 1100, 1249].map((frame) => {
+            return {
+              type: "COMMAND",
+              command: "imagevalidate_525 -avg -threshold 0.5 -maxthreshold 20 frame_" + frame +
+                ".yuv ../compare/frame_" + frame + ".org.tga",
+              file: "imagevalidate_frame_" + frame + ".out",
+              compareOption: {
+                relativeTolerance: 0.085,
+              } as CompareOptions,
+            } as ValidateConfig;
+          }),
+        }
+      ]);
+      benchmarks.set("531.deepsjeng_r", [
+        {
+          args: "ref.txt",
+          validates: [{
+            type: "STDOUT",
+            file: "ref.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("541.leela_r", [
+        {
+          args: "ref.sgf",
+          validates: [{
+            type: "STDOUT",
+            file: "ref.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("548.exchange2_r", [
+        {
+          args: "6",
+          validates: [{
+            type: "FILE",
+            file: "s.txt",
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("557.xz_r", [
+        {
+          args: "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
+          validates: [{
+            type: "STDOUT",
+            file: "cld.tar-160-6.out",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
+          validates: [{
+            type: "STDOUT",
+            file: "cpu2006docs.tar-250-6e.out",
+          }],
+        } as BenchmarkConfig,
+        {
+          args: "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7",
+          validates: [{
+            type: "STDOUT",
+            file: "input.combined-250-7.out",
+          }],
+        } as BenchmarkConfig,
+      ]);
+
+      // fp rate
+      benchmarks.set("503.bwaves_r", [1, 2, 3, 4].map((i) => {
+        return {
+          args: "bwaves_" + i + " < bwaves_" + i + ".in",
+          validates: [{
+            type: "STDOUT",
+            file: "bwaves_" + i + ".out",
             compareOption: {
-              relativeTolerance: 0.085,
-            } as CompareOptions,
-          } as ValidateConfig;
-        }),
-      }
-    ]);
-    benchmarks.set("531.deepsjeng_r", [
-      {
-        args: "ref.txt",
-        validates: [{
-          type: "STDOUT",
-          file: "ref.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("541.leela_r", [
-      {
-        args: "ref.sgf",
-        validates: [{
-          type: "STDOUT",
-          file: "ref.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("548.exchange2_r", [
-      {
-        args: "6",
-        validates: [{
-          type: "FILE",
-          file: "s.txt",
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("557.xz_r", [
-      {
-        args: "cld.tar.xz 160 19cf30ae51eddcbefda78dd06014b4b96281456e078ca7c13e1c0c9e6aaea8dff3efb4ad6b0456697718cede6bd5454852652806a657bb56e07d61128434b474 59796407 61004416 6",
-        validates: [{
-          type: "STDOUT",
-          file: "cld.tar-160-6.out",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "cpu2006docs.tar.xz 250 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 23047774 23513385 6e",
-        validates: [{
-          type: "STDOUT",
-          file: "cpu2006docs.tar-250-6e.out",
-        }],
-      } as BenchmarkConfig,
-      {
-        args: "input.combined.xz 250 a841f68f38572a49d86226b7ff5baeb31bd19dc637a922a972b2e6d1257a890f6a544ecab967c313e370478c74f760eb229d4eef8a8d2836d233d3e9dd1430bf 40401484 41217675 7",
-        validates: [{
-          type: "STDOUT",
-          file: "input.combined-250-7.out",
-        }],
-      } as BenchmarkConfig,
-    ]);
+              absoluteTolerance: 1e-16,
+              relativeTolerance: 0.015,
+            }
+          }],
+        } as BenchmarkConfig;
+      }));
+      benchmarks.set("507.cactuBSSN_r", [
+        {
+          args: "spec_ref.par",
+          validates: [{
+            type: "STDOUT",
+            file: "spec_ref.out",
+          }, {
+            type: "FILE",
+            file: "gxx.xl",
+            compareOption: {
+              absoluteTolerance: 5e-13,
+            }
+          }, {
+            type: "FILE",
+            file: "gxy.xl",
+            compareOption: {
+              absoluteTolerance: 5e-13,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("508.namd_r", [
+        {
+          args: "--input apoa1.input --output apoa1.ref.output --iterations 65",
+          validates: [{
+            type: "FILE",
+            file: "apoa1.ref.output",
+            compareOption: {
+              absoluteTolerance: 5e-05,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("510.parest_r", [
+        {
+          args: "ref.prm",
+          validates: [{
+            type: "FILE",
+            file: "001-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "002-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "003-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "004-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "005-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "006-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "007-m00.vtk",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "log",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "me.prm",
+            compareOption: {
+              absoluteTolerance: 0.001,
+            }
+          }, {
+            type: "FILE",
+            file: "statistics",
+            compareOption: {
+              absoluteTolerance: 0.004,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("511.povray_r", [
+        {
+          args: "SPEC-benchmark-ref.ini",
+          validates: [{
+            type: "COMMAND",
+            command: "imagevalidate_511 SPEC-benchmark.tga ../compare/SPEC-benchmark.org.tga",
+            file: "imagevalidate_SPEC-benchmark.tga.out",
+            compareOption: {
+              relativeTolerance: 0.06,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("519.lbm_r", [
+        {
+          args: "3000 reference.dat 0 0 100_100_130_ldc.of",
+          validates: [{
+            type: "STDOUT",
+            file: "lbm.out",
+            compareOption: {
+              absoluteTolerance: 1e-07,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("521.wrf_r", [
+        {
+          args: "",
+          validates: [{
+            type: "COMMAND",
+            command: "diffwrf_521 wrfout_d01_2000-01-24_20_00_00 ../compare/wrf_reference_01",
+            file: "diffwrf_output_01.txt",
+            compareOption: {
+              collapseWhitespace: true,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("526.blender_r", [
+        {
+          args: "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
+          validates: [{
+            type: "COMMAND",
+            command: "imagevalidate_526 -avg -threshold 0.75 -maxthreshold 0.01 sh3_no_char_0849.tga ../compare/sh3_no_char_0849.org.tga",
+            file: "imagevalidate_sh3_no_char_0849.out",
+            compareOption: {
+              relativeTolerance: 0.05,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("527.cam4_r", [
+        {
+          args: "",
+          validates: [{
+            type: "COMMAND",
+            command: "cam4_validate_527 10 0.0035 ../compare/h0_ctrl.nc h0.nc",
+            file: "cam4_validate.txt",
+            compareOption: {
+              collapseWhitespace: true,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("538.imagick_r", [
+        {
+          args: "-limit disk 0 refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga",
+          validates: [{
+            type: "COMMAND",
+            command: "imagevalidate_538 -avg -threshold 0.95 -maxthreshold 0.001 refrate_output.tga ../compare/refrate_expected.tga",
+            file: "refrate_validate.out",
+            compareOption: {
+              relativeTolerance: 0.01,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("544.nab_r", [
+        {
+          args: "1am0 1122214447 122",
+          validates: [{
+            type: "STDOUT",
+            file: "1am0.out",
+            compareOption: {
+              relativeTolerance: 0.01,
+              skipRelativeTolerance: 2
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("549.fotonik3d_r", [
+        {
+          args: "",
+          validates: [{
+            type: "FILE",
+            file: "pscyee.out",
+            compareOption: {
+              absoluteTolerance: 1e-27,
+              relativeTolerance: 1e-10,
+              // TODO: off-by-one --obiwan
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
+      benchmarks.set("554.roms_r", [
+        {
+          args: "< ocean_benchmark2.in.x",
+          validates: [{
+            type: "STDOUT",
+            file: "ocean_benchmark2.log",
+            compareOption: {
+              absoluteTolerance: 1e-07,
+              relativeTolerance: 1e-07,
+              // although not specified in Spec/object.pm,
+              // we found that the only diff was whitespaces..
+              collapseWhitespace: true,
+            }
+          }],
+        } as BenchmarkConfig,
+      ]);
 
-    // fp rate
-    benchmarks.set("503.bwaves_r", [1, 2, 3, 4].map((i) => {
-      return {
-        args: "bwaves_" + i + " < bwaves_" + i + ".in",
-        validates: [{
-          type: "STDOUT",
-          file: "bwaves_" + i + ".out",
-          compareOption: {
-            absoluteTolerance: 1e-16,
-            relativeTolerance: 0.015,
-          }
-        }],
-      } as BenchmarkConfig;
-    }));
-    benchmarks.set("507.cactuBSSN_r", [
-      {
-        args: "spec_ref.par",
-        validates: [{
-          type: "STDOUT",
-          file: "spec_ref.out",
-        }, {
-          type: "FILE",
-          file: "gxx.xl",
-          compareOption: {
-            absoluteTolerance: 5e-13,
-          }
-        }, {
-          type: "FILE",
-          file: "gxy.xl",
-          compareOption: {
-            absoluteTolerance: 5e-13,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("508.namd_r", [
-      {
-        args: "--input apoa1.input --output apoa1.ref.output --iterations 65",
-        validates: [{
-          type: "FILE",
-          file: "apoa1.ref.output",
-          compareOption: {
-            absoluteTolerance: 5e-05,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("510.parest_r", [
-      {
-        args: "ref.prm",
-        validates: [{
-          type: "FILE",
-          file: "001-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "002-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "003-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "004-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "005-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "006-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "007-m00.vtk",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "log",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "me.prm",
-          compareOption: {
-            absoluteTolerance: 0.001,
-          }
-        }, {
-          type: "FILE",
-          file: "statistics",
-          compareOption: {
-            absoluteTolerance: 0.004,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("511.povray_r", [
-      {
-        args: "SPEC-benchmark-ref.ini",
-        validates: [{
-          type: "COMMAND",
-          command: "imagevalidate_511 SPEC-benchmark.tga ../compare/SPEC-benchmark.org.tga",
-          file: "imagevalidate_SPEC-benchmark.tga.out",
-          compareOption: {
-            relativeTolerance: 0.06,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("519.lbm_r", [
-      {
-        args: "3000 reference.dat 0 0 100_100_130_ldc.of",
-        validates: [{
-          type: "STDOUT",
-          file: "lbm.out",
-          compareOption: {
-            absoluteTolerance: 1e-07,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("521.wrf_r", [
-      {
-        args: "",
-        validates: [{
-          type: "COMMAND",
-          command: "diffwrf_521 wrfout_d01_2000-01-24_20_00_00 ../compare/wrf_reference_01",
-          file: "diffwrf_output_01.txt",
-          compareOption: {
-            collapseWhitespace: true,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("526.blender_r", [
-      {
-        args: "sh3_no_char.blend --render-output sh3_no_char_ --threads 1 -b -F RAWTGA -s 849 -e 849 -a",
-        validates: [{
-          type: "COMMAND",
-          command: "imagevalidate_526 -avg -threshold 0.75 -maxthreshold 0.01 sh3_no_char_0849.tga ../compare/sh3_no_char_0849.org.tga",
-          file: "imagevalidate_sh3_no_char_0849.out",
-          compareOption: {
-            relativeTolerance: 0.05,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("527.cam4_r", [
-      {
-        args: "",
-        validates: [{
-          type: "COMMAND",
-          command: "cam4_validate_527 10 0.0035 ../compare/h0_ctrl.nc h0.nc",
-          file: "cam4_validate.txt",
-          compareOption: {
-            collapseWhitespace: true,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("538.imagick_r", [
-      {
-        args: "-limit disk 0 refrate_input.tga -edge 41 -resample 181% -emboss 31 -colorspace YUV -mean-shift 19x19+15% -resize 30% refrate_output.tga",
-        validates: [{
-          type: "COMMAND",
-          command: "imagevalidate_538 -avg -threshold 0.95 -maxthreshold 0.001 refrate_output.tga ../compare/refrate_expected.tga",
-          file: "refrate_validate.out",
-          compareOption: {
-            relativeTolerance: 0.01,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("544.nab_r", [
-      {
-        args: "1am0 1122214447 122",
-        validates: [{
-          type: "STDOUT",
-          file: "1am0.out",
-          compareOption: {
-            relativeTolerance: 0.01,
-            skipRelativeTolerance: 2
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("549.fotonik3d_r", [
-      {
-        args: "",
-        validates: [{
-          type: "FILE",
-          file: "pscyee.out",
-          compareOption: {
-            absoluteTolerance: 1e-27,
-            relativeTolerance: 1e-10,
-            // TODO: off-by-one --obiwan
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
-    benchmarks.set("554.roms_r", [
-      {
-        args: "< ocean_benchmark2.in.x",
-        validates: [{
-          type: "STDOUT",
-          file: "ocean_benchmark2.log",
-          compareOption: {
-            absoluteTolerance: 1e-07,
-            relativeTolerance: 1e-07,
-            // although not specified in Spec/object.pm,
-            // we found that the only diff was whitespaces..
-            collapseWhitespace: true,
-          }
-        }],
-      } as BenchmarkConfig,
-    ]);
+      // from data/refrate/reftime
+      let reftime: Map<string, number> = new Map();
+      // int rate
+      reftime.set("500.perlbench_r", 1592);
+      reftime.set("502.gcc_r", 1416);
+      reftime.set("505.mcf_r", 1616);
+      reftime.set("520.omnetpp_r", 1312);
+      reftime.set("523.xalancbmk_r", 1056);
+      reftime.set("525.x264_r", 1751);
+      reftime.set("531.deepsjeng_r", 1146);
+      reftime.set("541.leela_r", 1656);
+      reftime.set("548.exchange2_r", 2620);
+      reftime.set("557.xz_r", 1080);
 
-    // from data/refrate/reftime
-    let reftime: Map<string, number> = new Map();
-    // int rate
-    reftime.set("500.perlbench_r", 1592);
-    reftime.set("502.gcc_r", 1416);
-    reftime.set("505.mcf_r", 1616);
-    reftime.set("520.omnetpp_r", 1312);
-    reftime.set("523.xalancbmk_r", 1056);
-    reftime.set("525.x264_r", 1751);
-    reftime.set("531.deepsjeng_r", 1146);
-    reftime.set("541.leela_r", 1656);
-    reftime.set("548.exchange2_r", 2620);
-    reftime.set("557.xz_r", 1080);
+      // fp rate
+      reftime.set("503.bwaves_r", 10028);
+      reftime.set("507.cactuBSSN_r", 1266);
+      reftime.set("508.namd_r", 950);
+      reftime.set("510.parest_r", 2616);
+      reftime.set("511.povray_r", 2335);
+      reftime.set("519.lbm_r", 1054);
+      reftime.set("521.wrf_r", 2240);
+      reftime.set("526.blender_r", 1523);
+      reftime.set("527.cam4_r", 1749);
+      reftime.set("538.imagick_r", 2487);
+      reftime.set("544.nab_r", 1683);
+      reftime.set("549.fotonik3d_r", 3897);
+      reftime.set("554.roms_r", 1589);
 
-    // fp rate
-    reftime.set("503.bwaves_r", 10028);
-    reftime.set("507.cactuBSSN_r", 1266);
-    reftime.set("508.namd_r", 950);
-    reftime.set("510.parest_r", 2616);
-    reftime.set("511.povray_r", 2335);
-    reftime.set("519.lbm_r", 1054);
-    reftime.set("521.wrf_r", 2240);
-    reftime.set("526.blender_r", 1523);
-    reftime.set("527.cam4_r", 1749);
-    reftime.set("538.imagick_r", 2487);
-    reftime.set("544.nab_r", 1683);
-    reftime.set("549.fotonik3d_r", 3897);
-    reftime.set("554.roms_r", 1589);
+      this.log += "Finding fastest core\n";
+      let task: taskpool.Task = new taskpool.Task(findBestCore);
+      let core = await taskpool.execute(task);
+      this.log += "Found fastest core is " + core + "\n";
 
-    this.log += "Finding fastest core\n";
-    let task: taskpool.Task = new taskpool.Task(findBestCore);
-    let core = await taskpool.execute(task);
-    this.log += "Found fastest core is " + core + "\n";
-
-    let result: Map<string, number> = new Map();
-    let failed: boolean = false;
-    for (let benchmark of filter) {
-      this.log += "Run benchmark " + benchmark + "\n";
-      hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
-      let value = await context.resourceManager.getRawFileContent(benchmark + ".zip");
-      // each benchmark has its own directory
-      let filesDir = context.filesDir + "/" + benchmark;
-      if (!await fs.access(filesDir)) {
-        await fs.mkdir(filesDir);
-      }
-
-      // copy rawfile to files dir
-      let filePath = filesDir + "/" + benchmark + ".zip";
-      let file = await fs.open(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      await fs.write(file.fd, value.buffer);
-      await fs.close(file);
-
-      // extract to files dir
-      let options: zlib.Options = {
-        level: zlib.CompressLevel.COMPRESS_LEVEL_DEFAULT_COMPRESSION
-      };
-      await zlib.decompressFile(filePath, filesDir, options);
-
-      let inputDir = filesDir + "/input";
-      let outputDir = filesDir + "/output";
-
-      if (benchmark === "525.x264_r") {
-        // generate BuckBunny.yuv
-        hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
-        this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
-        let task: taskpool.Task =
-          new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "),
-            core, []);
-        await taskpool.execute(task);
-      }
-
-      hilog.info(0x0000, 'mainTag', 'Got files under benchmark folder: %{public}s',
-        JSON.stringify(fs.listFileSync(filesDir)));
-      hilog.info(0x0000, 'mainTag', 'Got files under input folder: %{public}s',
-        JSON.stringify(fs.listFileSync(inputDir)));
-      hilog.info(0x0000, 'mainTag', 'Got files under output folder: %{public}s',
-        JSON.stringify(fs.listFileSync(outputDir)));
-
-      // run benchmark in background
-      let totalTime: number = 0;
-      let index: number = 0;
-      for (let b of benchmarks.get(benchmark)!) {
-        index += 1;
-        let arg: string;
-        let validates: ValidateConfig[] = [];
-        if (typeof b === "string") {
-          arg = b;
-        } else {
-          arg = (b as BenchmarkConfig).args;
-          validates = (b as BenchmarkConfig).validates;
+      let result: Map<string, number> = new Map();
+      let failed: boolean = false;
+      for (let benchmark of filter) {
+        this.log += "Run benchmark " + benchmark + "\n";
+        hilog.info(0x0000, 'mainTag', 'Extracting files for %{public}s', benchmark);
+        let value = await context.resourceManager.getRawFileContent(benchmark + ".zip");
+        // each benchmark has its own directory
+        let filesDir = context.filesDir + "/" + benchmark;
+        if (!await fs.access(filesDir)) {
+          await fs.mkdir(filesDir);
         }
 
-        this.log += "Run benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
-        hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s #%{public}d with %{public}s', benchmark, index, arg);
-        let args = arg.split(" ");
-        let stdinFile = "";
-        if (args.length >= 2 && args[args.length-2] === "<") {
-          // handle input redirection
-          stdinFile = args.pop()!;
-          args.pop();
+        // copy rawfile to files dir
+        let filePath = filesDir + "/" + benchmark + ".zip";
+        let file = await fs.open(filePath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+        await fs.write(file.fd, value.buffer);
+        await fs.close(file);
+
+        // extract to files dir
+        let options: zlib.Options = {
+          level: zlib.CompressLevel.COMPRESS_LEVEL_DEFAULT_COMPRESSION
+        };
+        await zlib.decompressFile(filePath, filesDir, options);
+
+        let inputDir = filesDir + "/input";
+        let outputDir = filesDir + "/output";
+
+        if (benchmark === "525.x264_r") {
+          // generate BuckBunny.yuv
+          hilog.info(0x0000, 'mainTag', 'Generating BuckBunny.yuv');
+          this.log += 'Generating BuckBunny.yuv for 525.x264_r\n';
+          let task: taskpool.Task =
+            new taskpool.Task(worker, inputDir, outputDir, "", "ldecod_r", "-i BuckBunny.264 -o BuckBunny.yuv".split(" "),
+              core, []);
+          await taskpool.execute(task);
         }
 
-        let task: taskpool.Task =
-          new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validates);
-        let time: number = await taskpool.execute(task) as number;
-        if (time < 0) {
-          hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
-            arg);
-          this.log += "Failed benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
-          failed = true;
+        hilog.info(0x0000, 'mainTag', 'Got files under benchmark folder: %{public}s',
+          JSON.stringify(fs.listFileSync(filesDir)));
+        hilog.info(0x0000, 'mainTag', 'Got files under input folder: %{public}s',
+          JSON.stringify(fs.listFileSync(inputDir)));
+        hilog.info(0x0000, 'mainTag', 'Got files under output folder: %{public}s',
+          JSON.stringify(fs.listFileSync(outputDir)));
+
+        // run benchmark in background
+        let totalTime: number = 0;
+        let index: number = 0;
+        for (let b of benchmarks.get(benchmark)!) {
+          index += 1;
+          let arg: string;
+          let validates: ValidateConfig[] = [];
+          if (typeof b === "string") {
+            arg = b;
+          } else {
+            arg = (b as BenchmarkConfig).args;
+            validates = (b as BenchmarkConfig).validates;
+          }
+
+          this.log += "Run benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
+          hilog.info(0x0000, 'mainTag', 'Run benchmark %{public}s #%{public}d with %{public}s', benchmark, index, arg);
+          let args = arg.split(" ");
+          let stdinFile = "";
+          if (args.length >= 2 && args[args.length-2] === "<") {
+            // handle input redirection
+            stdinFile = args.pop()!;
+            args.pop();
+          }
+
+          let task: taskpool.Task =
+            new taskpool.Task(worker, inputDir, outputDir, stdinFile, benchmark, args, core, validates);
+          let time: number = await taskpool.execute(task) as number;
+          if (time < 0) {
+            hilog.info(0x0000, 'mainTag', 'Failed benchmark %{public}s with args %{public}s', benchmark,
+              arg);
+            this.log += "Failed benchmark " + benchmark + " #" + index + " with args " + arg + "\n";
+            failed = true;
+            break;
+          }
+
+          hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
+            arg, time.toString());
+          this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
+
+          if (validates.length > 0) {
+            this.log += "Output validation passed for " + benchmark + " #" + index + "\n";
+          }
+
+          totalTime += time;
+        }
+
+        if (failed) {
           break;
         }
 
-        hilog.info(0x0000, 'mainTag', 'Finished benchmark %{public}s with args %{public}s in %{public}ss', benchmark,
-          arg, time.toString());
-        this.log += "Finished benchmark " + benchmark + " #" + index + " with args " + arg + " in " + time + "s\n";
-
-        if (validates.length > 0) {
-          this.log += "Output validation passed for " + benchmark + " #" + index + "\n";
-        }
-
-        totalTime += time;
+        let ratio: number = reftime.get(benchmark)!
+        / totalTime;
+        this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio + "\n";
+        hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s',
+          benchmark,
+          totalTime.toString(), ratio.toString());
+        result.set(benchmark, totalTime);
       }
 
       if (failed) {
-        break;
+        this.log += "Aborted due to failure\n";
+      } else {
+        // print summary
+        this.log += "Summary:\n";
+        let ratios: number[] = [];
+        let geomean = 1.0;
+        this.log += "=================================================================================\n";
+        for (let benchmark of result.keys()) {
+          let ratio: number = reftime.get(benchmark)!
+          / result.get(benchmark)!;
+          this.log += benchmark + " 1 " + result.get(benchmark)!.toPrecision(3) + " " + ratio.toPrecision(3) + " *\n";
+          ratios.push(ratio);
+          geomean *= ratio;
+        }
+        this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size).toPrecision(3) + "\n";
       }
-
-      let ratio: number = reftime.get(benchmark)!
-      / totalTime;
-      this.log += "Finished whole benchmark " + benchmark + " in " + totalTime + "s, ratio is " + ratio + "\n";
-      hilog.info(0x0000, 'mainTag', 'Finished whole benchmark %{public}s in %{public}ss, ratio is %{public}s',
-        benchmark,
-        totalTime.toString(), ratio.toString());
-      result.set(benchmark, totalTime);
+    } catch (err) {
+      hilog.info(0x0000, 'mainTag', 'Got error: %{public}s %{public}s', err.toString(), JSON.stringify(err));
+      this.log += "Got exception: " + err.toString() + "\n";
     }
-
-    if (failed) {
-      this.log += "Aborted due to failure\n";
-    } else {
-      // print summary
-      this.log += "Summary:\n";
-      let ratios: number[] = [];
-      let geomean = 1.0;
-      this.log += "=================================================================================\n";
-      for (let benchmark of result.keys()) {
-        let ratio: number = reftime.get(benchmark)!
-        / result.get(benchmark)!;
-        this.log += benchmark + " 1 " + result.get(benchmark)!.toPrecision(3) + " " + ratio.toPrecision(3) + " *\n";
-        ratios.push(ratio);
-        geomean *= ratio;
-      }
-      this.log += "Est. SPECrate(R)2017_int/fp_base " + Math.pow(geomean, 1 / result.size).toPrecision(3) + "\n";
-    }
-
     this.running = false;
   }
 
