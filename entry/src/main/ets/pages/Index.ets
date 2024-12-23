@@ -739,9 +739,16 @@ struct Index {
         let geomean = 1.0;
         this.log += "=================================================================================\n";
         for (let benchmark of result.keys()) {
+          let time: number = result.get(benchmark)!;
+          let timeString: string = time.toPrecision(3);
+          // keep integral part if >= 1000
+          if (time >= 1000) {
+            timeString = Math.round(time).toString();
+          }
+          
           let ratio: number = reftime.get(benchmark)!
           / result.get(benchmark)!;
-          this.log += benchmark + " 1 " + result.get(benchmark)!.toPrecision(3) + " " + ratio.toPrecision(3) + " *\n";
+          this.log += benchmark + " 1 " + timeString + " " + ratio.toPrecision(3) + " *\n";
           ratios.push(ratio);
           geomean *= ratio;
         }
