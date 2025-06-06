@@ -1,15 +1,4 @@
 benchmark,time,ratio
-500.perlbench_r,424,3.75
-502.gcc_r,275,5.15
-505.mcf_r,410,3.94
-520.omnetpp_r,516,2.54
-523.xalancbmk_r,329,3.21
-525.x264_r,168,10.42
-531.deepsjeng_r,383,2.99
-541.leela_r,687,2.41
-548.exchange2_r,248,10.56
-557.xz_r,556,1.94
-int_rate,3996,3.96
 503.bwaves_r,299,33.54
 507.cactuBSSN_r,195,6.49
 508.namd_r,219,4.34
