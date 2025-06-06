@@ -802,14 +802,12 @@ struct Index {
   }
 
   build() {
-    Row() {
+    Scroll() {
       Column() {
-        Scroll() {
-          Text(this.log)
-            .fontSize(10)
-            .fontFamily('monospace')
-            .width('100%')
-        }
+        Text(this.log)
+          .fontSize(10)
+          .fontFamily('monospace')
+          .width('100%')
 
         Text("Find Fastest Core")
           .fontSize(30)
@@ -855,9 +853,7 @@ struct Index {
               }
             });
           })
-      }
-      .width('100%')
+      }.width('100%')
     }
-    .height('90%')
   }
 }
