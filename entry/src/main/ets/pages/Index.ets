@@ -7,6 +7,7 @@ import { pasteboard } from '@kit.BasicServicesKit';
 import { isEqual, readWholeFile, CompareOptions } from './utils.ets';
 import { promptAction } from '@kit.ArkUI';
 import { thermal } from '@kit.BasicServicesKit';
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 interface ValidateConfig {
   // stdout validation, compare stdout and specified file under output folder
@@ -35,20 +36,14 @@ interface BenchmarkConfig {
 type Benchmark = string | BenchmarkConfig;
 
 @Concurrent
-function findBestCore(): number {
+function findCoreFreq(cores: number): number[] {
   // find core with maximum clock frequency
-  let core = 0;
-  let max_freq = 0;
-  for (let i = 0; i < 12; i++) {
+  let freqs: number[] = [];
+  for (let i = 0; i < cores; i++) {
     let freq: number = testNapi.clock(i);
-    if (freq > max_freq) {
-      max_freq = freq;
-      core = i;
-    }
+    freqs.push(freq);
   }
-  hilog.info(0x0000, 'mainTag', 'Fastest core is %{public}d', core);
-
-  return core;
+  return freqs;
 }
 
 @Concurrent
@@ -181,6 +176,7 @@ struct Index {
       ];
       this.log += "Thermal level is: " + levels[level] + "\n";
     });
+    this.log += "Running on " + deviceInfo.marketName + "\n";
   }
 
   onPageHide() {
@@ -623,8 +619,26 @@ struct Index {
       reftime.set("554.roms_r", 1589);
 
       this.log += "Finding fastest core\n";
-      let task: taskpool.Task = new taskpool.Task(findBestCore);
-      let core = await taskpool.execute(task);
+      // TODO: find this automatically
+      let numCores = 12;
+      if (deviceInfo.marketName === "HUAWEI MateBook Pro") {
+        numCores = 20;
+      }
+      let task: taskpool.Task = new taskpool.Task(findCoreFreq, numCores);
+      let freqs: number[] = await taskpool.execute(task) as number[];
+
+      // find core with maximum clock frequency
+      let core = 0;
+      let max_freq = 0;
+      for (let i = 0; i < numCores; i++) {
+        let freq: number = freqs[i];
+        this.log += "Core " + i + " frequency is " + freq.toFixed(2) + "\n";
+        if (freq > max_freq) {
+          max_freq = freq;
+          core = i;
+        }
+      }
+      hilog.info(0x0000, 'mainTag', 'Fastest core is %{public}d', core);
       this.log += "Found fastest core is " + core + "\n";
 
       let result: Map<string, number> = new Map();
