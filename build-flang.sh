@@ -3,11 +3,12 @@
 # assume llvm-project is cloned at $HOME/llvm-project
 set -x -e
 mkdir -p flang
+export PATH=~/command-line-tools/sdk/default/openharmony/native/llvm/bin:$PATH
 DST=$PWD/flang
 cd $HOME/llvm-project
 git checkout main
 # match hash in flang-new-20 --version
-git reset 99354f968f64 --hard
+git reset 7cf14539b644 --hard
 
 cd libunwind
 rm -rf build

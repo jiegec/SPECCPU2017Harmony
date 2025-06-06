@@ -28,7 +28,10 @@ To install the application to phone: either use DevEco Studio, or use `push.sh`.
 
 ## Result
 
-If you want to find existing benchmark results, please refer to [results](./results/README.md) folder.
+If you want to find existing benchmark results, please refer to [results](./results/README.md) folder. Tested devices:
+
+- Pura 70 Pro+
+- MateBook Pro
 
 ## How does it work
 
