@@ -30,7 +30,13 @@
   ],
   "targets": [
     {
-      "name": "default"
+      "name": "default",
+      "config": {
+        "deviceType": [
+          "phone",
+          "2in1"
+        ]
+      }
     },
     {
       "name": "ohosTest",
