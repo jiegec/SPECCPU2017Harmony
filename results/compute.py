@@ -59,47 +59,48 @@ reftime = {
     "554.roms_r": 1589,
 }
 
-with open(sys.argv[1], newline="") as csvfile:
-    reader = csv.DictReader(csvfile)
-    scores = {}
-    for row in reader:
-        if row["benchmark"] in int_rate or row["benchmark"] in fp_rate:
-            scores[row["benchmark"]] = {
-                "time": float(row["time"]),
-                "ratio": reftime[row["benchmark"]] / float(row["time"]),
-            }
+for arg in sys.argv[1:]:
+    with open(arg, newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        scores = {}
+        for row in reader:
+            if row["benchmark"] in int_rate or row["benchmark"] in fp_rate:
+                scores[row["benchmark"]] = {
+                    "time": float(row["time"]),
+                    "ratio": reftime[row["benchmark"]] / float(row["time"]),
+                }
 
-with open(sys.argv[1], "w", newline="") as csvfile:
-    fieldnames = ["benchmark", "time", "ratio"]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    with open(arg, "w", newline="") as csvfile:
+        fieldnames = ["benchmark", "time", "ratio"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, lineterminator="\n")
 
-    writer.writeheader()
+        writer.writeheader()
 
-    for name, rate in [("int_rate", int_rate), ("fp_rate", fp_rate)]:
-        sum_time = 0
-        for benchmark in rate:
-            if benchmark in scores:
-                sum_time += scores[benchmark]["time"]
-                writer.writerow(
-                    {
-                        "benchmark": benchmark,
-                        "time": round(scores[benchmark]["time"]),
-                        "ratio": "{:.2f}".format(scores[benchmark]["ratio"]),
-                    }
-                )
+        for name, rate in [("int_rate", int_rate), ("fp_rate", fp_rate)]:
+            sum_time = 0
+            for benchmark in rate:
+                if benchmark in scores:
+                    sum_time += scores[benchmark]["time"]
+                    writer.writerow(
+                        {
+                            "benchmark": benchmark,
+                            "time": round(scores[benchmark]["time"]),
+                            "ratio": "{:.2f}".format(scores[benchmark]["ratio"]),
+                        }
+                    )
 
-        ratios = []
-        for benchmark in rate:
-            if benchmark in scores:
-                ratios.append(scores[benchmark]["ratio"])
+            ratios = []
+            for benchmark in rate:
+                if benchmark in scores:
+                    ratios.append(scores[benchmark]["ratio"])
 
-        if len(ratios) == 0:
-            continue
+            if len(ratios) == 0:
+                continue
 
-        writer.writerow(
-            {
-                "benchmark": name,
-                "time": round(sum_time),
-                "ratio": "{:.2f}".format(statistics.geometric_mean(ratios)),
-            }
-        )
+            writer.writerow(
+                {
+                    "benchmark": name,
+                    "time": round(sum_time),
+                    "ratio": "{:.2f}".format(statistics.geometric_mean(ratios)),
+                }
+            )
