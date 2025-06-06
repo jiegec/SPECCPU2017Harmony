@@ -1,5 +1,11 @@
 # SPEC CPU 2017 Harmony
 
+Running SPEC INT 2017 benchmark on HUAWEI MateBook Pro:
+
+![](./screenshot.jpg)
+
+## Overview
+
 Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT.
 
 It currently supports running SPEC CPU 2017 int rate-1 and fp rate-1.
@@ -40,6 +46,8 @@ Because HarmonyOS NEXT does not permit the execution of binaries in the data fol
 To prevent memory exhaustion caused by potential memory leaks, each benchmark is executed within a forked child process. Upon the child process's termination, the memory is automatically reclaimed. The execution time is measured from the parent process, which includes the minimal overhead of process startup and shutdown.
 
 Certain benchmarks require an exceptionally large stack size (on the order of hundreds of megabytes). However, setting the stack size limit using `setrlimit` does not function as intended. To address this, a manual switch implemented in assembly is used to run the benchmark on a heap-allocated 1GB stack.
+
+P.S. It seems that on MateBookPro, execve syscall is allowed, so it is possible to run statically linked SPEC CPU 2017 binaries instead of rebuilding it with Clang/Flang. Investigation is pending.
 
 ## TODO
 
