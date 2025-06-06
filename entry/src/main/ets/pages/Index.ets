@@ -35,6 +35,12 @@ interface BenchmarkConfig {
 
 type Benchmark = string | BenchmarkConfig;
 
+// TODO: find this automatically
+let numCores = 12;
+if (deviceInfo.marketName === "HUAWEI MateBook Pro") {
+  numCores = 20;
+}
+
 @Concurrent
 function findCoreFreq(cores: number): number[] {
   // find core with maximum clock frequency
@@ -160,6 +166,7 @@ let fp_rate = [
 struct Index {
   @State log: string = '';
   @State running: boolean = false;
+  @State core: number = 0;
 
   onPageShow() {
     thermal.registerThermalLevelCallback((level: thermal.ThermalLevel) => {
@@ -618,28 +625,8 @@ struct Index {
       reftime.set("549.fotonik3d_r", 3897);
       reftime.set("554.roms_r", 1589);
 
-      this.log += "Finding fastest core\n";
-      // TODO: find this automatically
-      let numCores = 12;
-      if (deviceInfo.marketName === "HUAWEI MateBook Pro") {
-        numCores = 20;
-      }
-      let task: taskpool.Task = new taskpool.Task(findCoreFreq, numCores);
-      let freqs: number[] = await taskpool.execute(task) as number[];
-
-      // find core with maximum clock frequency
-      let core = 0;
-      let max_freq = 0;
-      for (let i = 0; i < numCores; i++) {
-        let freq: number = freqs[i];
-        this.log += "Core " + i + " frequency is " + freq.toFixed(2) + "\n";
-        if (freq > max_freq) {
-          max_freq = freq;
-          core = i;
-        }
-      }
-      hilog.info(0x0000, 'mainTag', 'Fastest core is %{public}d', core);
-      this.log += "Found fastest core is " + core + "\n";
+      let core = this.core;
+      this.log += "Using core " + core + "\n";
 
       let result: Map<string, number> = new Map();
       let failed: boolean = false;
@@ -801,6 +788,19 @@ struct Index {
     }
   }
 
+  @Builder
+  coreMenu() {
+    Menu() {
+      // https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
+      ForEach(Array.from({length: numCores}, (x: object, i: number) => i), (core: number) => {
+        MenuItem({ content: "Core " + core })
+          .onClick(() => {
+            this.core = core;
+          })
+      })
+    }
+  }
+
   build() {
     Row() {
       Column() {
@@ -811,10 +811,37 @@ struct Index {
             .width('100%')
         }
 
+        Text("Find Fastest Core")
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .onClick(async () => {
+            this.log += "Finding fastest core\n";
+            let task: taskpool.Task = new taskpool.Task(findCoreFreq, numCores);
+            let freqs: number[] = await taskpool.execute(task) as number[];
+
+            // find core with maximum clock frequency
+            let core = 0;
+            let max_freq = 0;
+            for (let i = 0; i < numCores; i++) {
+              let freq: number = freqs[i];
+              this.log += "Core " + i + " frequency is " + freq.toFixed(2) + " GHz\n";
+              if (freq > max_freq) {
+                max_freq = freq;
+                core = i;
+              }
+            }
+            hilog.info(0x0000, 'mainTag', 'Fastest core is %{public}d', core);
+            this.log += "Found fastest core is " + core + "\n";
+            this.core = core;
+          })
         Text("Run Benchmarks")
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
           .bindMenu(this.benchmarkMenu)
+        Text("Select Core (Currently " + this.core + ")")
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .bindMenu(this.coreMenu)
         Text("Copy Result")
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
