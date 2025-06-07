@@ -785,6 +785,11 @@ struct Index {
             this.runBenchmarks([item]);
           })
       })
+      MenuItem({ content: "int rate-1 + fp rate-1" })
+        .onClick(() => {
+          this.runBenchmarks(int_rate);
+          this.runBenchmarks(fp_rate);
+        })
     }
   }
 
