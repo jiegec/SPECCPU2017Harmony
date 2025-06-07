@@ -61,7 +61,7 @@ function worker(inputDir: string, outputDir: string, stdinFile: string, benchmar
     hilog.info(0x0000, 'mainTag',
       'Run command: %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d',
       inputDir, stdinFile, stdoutFile, stderrFile, benchmark, JSON.stringify(args), core);
-    ret = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core, false);
+    ret = testNapi.run(inputDir, stdinFile, stdoutFile, stderrFile, benchmark, args, core, true);
     hilog.info(0x0000, 'mainTag', 'Got stdout: %{public}s', fs.readTextSync(stdoutFile));
     hilog.info(0x0000, 'mainTag', 'Got stderr: %{public}s', fs.readTextSync(stderrFile));
 

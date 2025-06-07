@@ -193,6 +193,7 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   napi_get_value_bool(env, args[7], &unbuffered);
   if (unbuffered) {
     setvbuf(stdout, NULL, _IONBF, 0);
+    setenv("GFORTRAN_UNBUFFERED_ALL", "1", true);
     OH_LOG_INFO(LOG_APP, "Stdout is unbuffered");
   }
 
@@ -207,6 +208,8 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   if (pid == 0) {
     // equivalent to:
     // int status = main(1 + args_length, real_argv.data(), envp);
+    // dlclose(handle);
+    // fflush(NULL);
     // exit(status);
     // run main & exit on the new stack
     switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top, handle);
