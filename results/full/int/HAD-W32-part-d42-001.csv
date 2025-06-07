@@ -1,0 +1,12 @@
+benchmark,time,ratio
+500.perlbench_r,580,2.74
+502.gcc_r,361,3.92
+505.mcf_r,485,3.33
+520.omnetpp_r,694,1.89
+523.xalancbmk_r,394,2.68
+525.x264_r,226,7.75
+531.deepsjeng_r,386,2.97
+541.leela_r,842,1.97
+548.exchange2_r,300,8.73
+557.xz_r,592,1.82
+int_rate,4860,3.25
