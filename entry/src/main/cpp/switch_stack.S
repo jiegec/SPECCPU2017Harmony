@@ -13,12 +13,12 @@ switch_stack:
         blr     x3
 
         # call dlclose(handle)
+        # w19: callee saved, save return value
+        mov     w19, w0
         mov     x0, x20
         bl      dlclose
 
         # flush all buffers via fflush(0)
-        # w19: callee saved
-        mov     w19, w0
         mov     x0, 0
         bl      fflush
         
