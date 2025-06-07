@@ -10,7 +10,7 @@ Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT.
 
 It currently supports running SPEC CPU 2017 int rate-1 and fp rate-1.
 
-Uses GCC 12.4.0 for compilation.
+Uses GCC 12.4.0 for compilation since v1.4.0(previously Clang 14 and Flang 20 were used).
 
 ## Usage
 
