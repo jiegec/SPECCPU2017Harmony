@@ -246,12 +246,8 @@ static napi_value Info(napi_env env, napi_callback_info info) {
   napi_value ret;
   std::string res;
 
-  res += "C/C++ Compiler Version: ";
-  res += STRINGIFY(CXX_COMPILER_VERSION);
-  res += "\n";
-
-  res += "Fortran Compiler Version: ";
-  res += STRINGIFY(FORTRAN_COMPILER_VERSION);
+  res += "Compiler Version: GCC ";
+  res += STRINGIFY(COMPILER_VERSION);
   res += "\n";
 
   struct utsname tmp;

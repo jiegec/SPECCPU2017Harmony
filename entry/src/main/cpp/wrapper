@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+import sys
+import os
+
+# log args
+old_argv = " ".join(sys.argv)
+if sys.argv[1].endswith("clang"):
+    sys.argv[1] = "/opt/cross/bin/aarch64-linux-musl-gcc"
+elif sys.argv[1].endswith("clang++"):
+    sys.argv[1] = "/opt/cross/bin/aarch64-linux-musl-g++"
+    # avoid requiring libstdc++.so
+    sys.argv.append("-static-libstdc++")
+elif sys.argv[1].endswith("gfortran"):
+    pass
+else:
+    assert False
+# filter args
+drop = [
+    "--target=aarch64-linux-ohos",
+    "-fno-addrsig",
+    "-fno-limit-debug-info",
+    "-Wno-error=reserved-user-defined-literal",
+    "--rtlib=compiler-rt",
+    "-Qunused-arguments",
+    "-fuse-ld=lld",
+    "-lunwind",
+]
+sys.argv = [
+    x for x in sys.argv if not x.startswith("--gcc-toolchain") and not x in drop
+]
+# fix compilation
+sys.argv.append("-fPIC")
+sys.argv.append("-Wno-error=format-security")
+with open(os.path.join(os.path.dirname(__file__), "wrapper.log"), "a+") as f:
+    print(old_argv, "->", " ".join(sys.argv[1:]), file=f)
+print("Executing", " ".join(sys.argv[1:]))
+os.execv(sys.argv[1], sys.argv[1:])

@@ -14,23 +14,24 @@ sub add_target {
         @additional_sources = ("module_cam_shr_const_mod.F90", "module_cam_shr_kind_mod.F90", "module_gfs_machine.F90", "module_gfs_physcons.F90", "ESMF_Fraction.F90");
     }
     print(FH "add_library(", $target, " SHARED ", (join " ", @sources) , " ", (join " ", @additional_sources), ")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES C_COMPILER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES C_LINKER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES CXX_COMPILER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES CXX_LINKER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES Fortran_COMPILER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
+    print(FH "set_target_properties(", $target, " PROPERTIES Fortran_LINKER_LAUNCHER \"\${CMAKE_CURRENT_SOURCE_DIR}/../wrapper\")\n");
 
-    # add more flags
-    $bench_flags = $bench_flags . " -march=armv8-a+sve -O3";
+    # general flags
+    $bench_flags = $bench_flags . " -O3 -flto";
     $bench_flags = $bench_flags . " -DSPEC -DSPEC_LP64 -DSPEC_LINUX -DSPEC_LINUX_AARCH64 -DSPEC_NO_USE_STDIO_PTR -DSPEC_NO_USE_STDIO_BASE -DSPEC_NO_ISFINITE";
-    if ($target ne "502.gcc_r" and $target ne "507.cactuBSSN_r" and $target ne "510.parest_r" and $target ne "521.wrf_r" and $target ne "526.blender_r" and $target ne "527.cam4_r" and $enable_lto) {
-        # -flto miscompiles for 502.gcc_r
-        # -flto incompatible llvm version for 507.cactuBSSN_r
-        # -flto ICE for 510.parest_r
-        # -flto too slow for 521.wrf_r
-        # -flto too slow for 526.blender_r
-        # -flto too slow for 527.cam4_r
-        $bench_flags = $bench_flags . " -flto";
-    }
-    if ($target ne "503.bwaves_r" and $target ne "507.cactuBSSN_r" and $target ne "521.wrf_r" and $target ne "diffwrf_521" and $target ne "527.cam4_r" and $target ne "cam4_validate_527" and $target ne "548.exchange2_r" and $target ne "549.fotonik3d_r" and $target ne "554.roms_r") {
-        # flang does not support -Wno-error and -fcommon
-        $bench_flags = $bench_flags . " -Wno-error=format-security -Wno-error=reserved-user-defined-literal -fcommon";
-    }
+    # for 500.perlbench_r, 502.gcc_r and 525.x264_r
+    $bench_cflags = $bench_cflags . " -fno-strict-aliasing -fno-unsafe-math-optimizations -fno-finite-math-only -fgnu89-inline -fcommon";
+    # for 521.wrf_r and 527.cam4_r
+    $bench_fflags = $bench_fflags . " -fallow-argument-mismatch -Wno-error=implicit-int";
+    # for 510.parest_r
+    $bench_cxxflags = $bench_cxxflags . " -std=c++03";
+
+    # benchmark specific flags
     if ($target eq "521.wrf_r") {
         $bench_cflags = $bench_cflags . " -DSPEC_CASE_FLAG";
         # fix crash due to little endian
@@ -54,10 +55,6 @@ sub add_target {
     # drop unwanted preprocessor flags
     $bench_fppflags =~ s{-w -m literal-single.pm -m c-comment.pm}{};
     $bench_fppflags =~ s{-w -m literal.pm}{};
-
-    # handle symbol interposition
-    $bench_cflags = $bench_cflags . " -fvisibility=protected";
-    $bench_cxxflags = $bench_cxxflags . " -fvisibility=protected";
 
     # set flags for each language
     $bench_cflags = $bench_cflags . " " . $bench_flags;
@@ -139,12 +136,22 @@ for $benchmark ("500.perlbench_r", "502.gcc_r", "505.mcf_r", "520.omnetpp_r", "5
 
 # patch code
 # fix compilation
+# fix missing include
 system("sed -i '1s;^;#include <fcntl.h>\\n;' entry/src/main/cpp/500.perlbench_r/perlio.c");
-system("sed -i 's/__linux__/__nonexistent__/' entry/src/main/cpp/510.parest_r/source/base/utilities.cc");
-system("sed -i 's/#if defined __FreeBSD__/#include <stdio.h>\\n#if 1/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
-system("sed -i 's/#if defined.* && !defined.*/#if 0/' entry/src/main/cpp/521.wrf_r/netcdf/include/ncfortran.h");
+system("sed -i 's/#if defined __FreeBSD__/#include <stdio.h>\\n#if 0/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
+# fix stat64 -> stat
+system("sed -i 's/defined __FreeBSD__/defined __MUSL__/' entry/src/main/cpp/520.omnetpp_r/simulator/platdep/platmisc.h");
+# we don't have backtrace()
+system("sed -i 's/defined(SPEC_LINUX)/0/' entry/src/main/cpp/526.blender_r/spec_backtrace.c");
+# fix missing ifdef condition
+system("sed -i 's/^#ifdef\$/#ifdef SPEC/' entry/src/main/cpp/527.cam4_r/ESMF_AlarmMod.F90");
+# fix missing rindex
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/misc.c");
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/type.c");
 system("sed -i '1s/^/# define rindex(X,Y) strrchr(X,Y)\\n/' entry/src/main/cpp/521.wrf_r/reg_parse.c");
-system("sed -i 's/^#ifdef\$/#ifdef SPEC/' entry/src/main/cpp/527.cam4_r/ESMF_AlarmMod.F90");
-system("sed -i 's/#if defined.* && !defined.*/#if 0/' entry/src/main/cpp/527.cam4_r/netcdf/include/ncfortran.h");
+# avoid line truncation
+system("sed -i 's/__FILE__/\"input_wrf.F90\"/' entry/src/main/cpp/521.wrf_r/input_wrf.F90");
+system("sed -i 's/__FILE__/\"output_wrf.F90\"/' entry/src/main/cpp/521.wrf_r/output_wrf.F90");
+system("sed -i 's/__FILE__/\"time_manager.F90\"/' entry/src/main/cpp/527.cam4_r/time_manager.F90");
+system("sed -i 's/__FILE__/\"phys_buffer.F90\"/' entry/src/main/cpp/527.cam4_r/phys_buffer.F90");
+system("sed -i 's/__FILE__/\"cam_history_support.F90\"/' entry/src/main/cpp/527.cam4_r/cam_history_support.F90");

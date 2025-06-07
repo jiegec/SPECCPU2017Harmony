@@ -12,25 +12,16 @@ It currently supports running SPEC CPU 2017 int rate-1 and fp rate-1.
 
 ## Usage
 
-How to build on macOS (missing support for benchmarks that use Fortran):
+How to build on Linux:
 
 1. Copy the whole benchspec folder from SPEC CPU 2017 installation to the root folder of this project
 2. Execute `perl generate.perl` under the root folder of this project
-3. Use DevEco Studio to open this project
-4. Setup code signing using DevEco Studio
-5. Execute `./build-macos.sh` under the root folder of this project
+3. Clone <https://github.com/jiegec/musl-cross-make/> to $HOME/musl-cross-make
+4. Execute `./build-musl.sh` under the root folder of this project (sudo is required to install musl toolchain to /opt/cross)
+5. Copy code signing config (including build-profile.json5 and ~/.ohos/config) from macOS/Windows
+6. Execute `./build-linux.sh` under the root folder of this project
 
-How to build on Linux (all benchmarks are working):
-
-1. Install lld-20 and flang-20 from [LLVM APT](https://apt.llvm.org/)
-2. Copy the whole benchspec folder from SPEC CPU 2017 installation to the root folder of this project
-3. Execute `perl generate.perl` under the root folder of this project
-4. Clone llvm-project to $HOME/llvm-project
-5. Execute `./build-flang.sh` under the root folder of this project
-6. Copy code signing config (including build-profile.json5 and ~/.ohos/config) from macOS/Windows
-7. Execute `./build-linux.sh` under the root folder of this project
-
-To install the application to phone: either use DevEco Studio, or use `push.sh`.
+To install the application to phone: copy the file from Linux to macOS and use `push.sh`.
 
 ## Result
 
