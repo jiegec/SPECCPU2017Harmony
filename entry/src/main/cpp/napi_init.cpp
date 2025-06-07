@@ -18,7 +18,8 @@
 extern "C" void switch_stack(int argc, const char **argv, const char **envp,
                              int (*callee)(int argc, const char **argv,
                                            const char **envp),
-                             void *sp);
+                             void *sp,
+                             void *handle);
 
 static std::string get_str(napi_env env, napi_value value) {
   size_t size = 0;
@@ -208,7 +209,7 @@ static napi_value Run(napi_env env, napi_callback_info info) {
     // int status = main(1 + args_length, real_argv.data(), envp);
     // exit(status);
     // run main & exit on the new stack
-    switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top);
+    switch_stack(1 + args_length, real_argv.data(), envp, main, stack_top, handle);
   } else {
     // in parent process
     assert(pid != -1);
