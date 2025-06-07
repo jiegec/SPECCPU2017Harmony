@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <vector>
+#include <fstream>
 
 #include "hilog/log.h"
 #undef LOG_TAG
@@ -270,6 +271,17 @@ static napi_value Info(napi_env env, napi_callback_info info) {
   return ret;
 }
 
+static napi_value CpuInfo(napi_env env, napi_callback_info info) {
+  napi_value ret;
+  // https://stackoverflow.com/questions/2602013/read-whole-ascii-file-into-c-stdstring
+  std::ifstream t("/proc/cpuinfo");
+  std::string res((std::istreambuf_iterator<char>(t)),
+                  std::istreambuf_iterator<char>());
+
+  napi_create_string_utf8(env, res.c_str(), res.length(), &ret);
+  return ret;
+}
+
 EXTERN_C_START
 static napi_value Init(napi_env env, napi_value exports) {
   napi_property_descriptor desc[] = {
@@ -277,6 +289,7 @@ static napi_value Init(napi_env env, napi_value exports) {
       {"clock", nullptr, Clock, nullptr, nullptr, nullptr, napi_default,
        nullptr},
       {"info", nullptr, Info, nullptr, nullptr, nullptr, napi_default, nullptr},
+      {"cpuInfo", nullptr, CpuInfo, nullptr, nullptr, nullptr, napi_default, nullptr},
   };
   napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
   return exports;

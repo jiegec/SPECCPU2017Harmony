@@ -35,11 +35,6 @@ interface BenchmarkConfig {
 
 type Benchmark = string | BenchmarkConfig;
 
-// TODO: find this automatically
-let numCores = 12;
-if (deviceInfo.marketName === "HUAWEI MateBook Pro") {
-  numCores = 20;
-}
 
 @Concurrent
 function findCoreFreq(cores: number): number[] {
@@ -167,6 +162,8 @@ struct Index {
   @State log: string = '';
   @State running: boolean = false;
   @State core: number = 0;
+  @State numCores: number = 0;
+  @State partIds: string[] = [];
 
   onPageShow() {
     thermal.registerThermalLevelCallback((level: thermal.ThermalLevel) => {
@@ -184,6 +181,28 @@ struct Index {
       this.log += "Thermal level is: " + levels[level] + "\n";
     });
     this.log += "Running on " + deviceInfo.marketName + "\n";
+
+    // parse /proc/cpuinfo
+    // let cpuinfo = fs.readTextSync("/proc/cpuinfo");
+    let cpuinfo: string = testNapi.cpuInfo();
+    this.log += "Reading /proc/cpuinfo:\n";
+    this.log += cpuinfo + "\n";
+    let lines: string[] = cpuinfo.split("\n");
+    this.partIds = [];
+    for (let line of lines) {
+      if (line.startsWith("CPU part")) {
+        let parts = line.split(":");
+        let part = parts[1].trim();
+        this.partIds.push(part);
+      }
+    }
+    this.numCores = this.partIds.length;
+    this.log += "Found " + this.numCores + " cores:\n";
+    let core = 0;
+    for (let partId of this.partIds) {
+      this.log += "Core " + core + ": part id " + partId + "\n";
+      core += 1;
+    }
   }
 
   onPageHide() {
@@ -626,7 +645,7 @@ struct Index {
       reftime.set("554.roms_r", 1589);
 
       let core = this.core;
-      this.log += "Using core " + core + "\n";
+      this.log += "Using core " + core + " with part id " + this.partIds[core] + "\n";
 
       let result: Map<string, number> = new Map();
       let failed: boolean = false;
@@ -797,7 +816,7 @@ struct Index {
   coreMenu() {
     Menu() {
       // https://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-a-range-within-the-supp
-      ForEach(Array.from({length: numCores}, (x: object, i: number) => i), (core: number) => {
+      ForEach(Array.from({length: this.numCores}, (x: object, i: number) => i), (core: number) => {
         MenuItem({ content: "Core " + core })
           .onClick(() => {
             this.core = core;
@@ -819,13 +838,13 @@ struct Index {
           .fontWeight(FontWeight.Bold)
           .onClick(async () => {
             this.log += "Finding fastest core\n";
-            let task: taskpool.Task = new taskpool.Task(findCoreFreq, numCores);
+            let task: taskpool.Task = new taskpool.Task(findCoreFreq, this.numCores);
             let freqs: number[] = await taskpool.execute(task) as number[];
 
             // find core with maximum clock frequency
             let core = 0;
             let max_freq = 0;
-            for (let i = 0; i < numCores; i++) {
+            for (let i = 0; i < this.numCores; i++) {
               let freq: number = freqs[i];
               this.log += "Core " + i + " frequency is " + freq.toFixed(2) + " GHz\n";
               if (freq > max_freq) {
