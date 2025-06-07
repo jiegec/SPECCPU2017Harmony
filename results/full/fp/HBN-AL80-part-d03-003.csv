@@ -1,0 +1,15 @@
+benchmark,time,ratio
+503.bwaves_r,303,33.10
+507.cactuBSSN_r,195,6.49
+508.namd_r,221,4.30
+510.parest_r,505,5.18
+511.povray_r,461,5.07
+519.lbm_r,228,4.62
+521.wrf_r,305,7.34
+526.blender_r,343,4.44
+527.cam4_r,837,2.09
+538.imagick_r,473,5.26
+544.nab_r,273,6.16
+549.fotonik3d_r,485,8.04
+554.roms_r,332,4.79
+fp_rate,4961,5.86
