@@ -31,6 +31,8 @@ sys.argv = [
 # fix compilation
 sys.argv.append("-fPIC")
 sys.argv.append("-Wno-error=format-security")
+# avoid requiring libgcc_s.so
+sys.argv.append("-static-libgcc")
 with open(os.path.join(os.path.dirname(__file__), "wrapper.log"), "a+") as f:
     print(old_argv, "->", " ".join(sys.argv[1:]), file=f)
 print("Executing", " ".join(sys.argv[1:]))

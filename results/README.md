@@ -16,13 +16,4 @@ For integer benchmarks, the best run is slightly faster than the full run. For f
 
 Note: Placing the device in a refrigerator is strictly prohibited.
 
-The C/C++ code is compiled using the current Clang version (15.0.4) from the HarmonyOS SDK. The Fortran code is compiled with the latest Flang-20 version from the LLVM APT repository. The following optimization flags are used:
-
-- some benchmarks are built without -flto: -O3 -march=armv8.a+sve
-	- 502.gcc_r: LTO leads to crashes
-	- 507.cactuBSSN_r: LTO fails due to different Clang and Flang versions
-	- 510.parest_r: internal exception in LTO
-	- 521.wrf_r: LTO is quite slow
-	- 526.blender_r: LTO is quite slow
-	- 527.cam4_r: LTO is quite slow
-- others: -O3 -flto -march=armv8.a+sve
+The C/C++ code is compiled using GCC 12.4.0 with `-O3 -flto` via musl-cross-make.
