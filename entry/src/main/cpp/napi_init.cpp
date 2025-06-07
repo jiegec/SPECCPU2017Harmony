@@ -88,8 +88,8 @@ static napi_value Clock(napi_env env, napi_callback_info info) {
 // 7: stdout unbuffered
 static napi_value Run(napi_env env, napi_callback_info info) {
   // get args
-  size_t argc = 7;
-  napi_value args[7] = {nullptr};
+  size_t argc = 8;
+  napi_value args[8] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
   // set cpu affinity
@@ -191,6 +191,14 @@ static napi_value Run(napi_env env, napi_callback_info info) {
   }
   freopen(stdout_file.c_str(), "w+", stdout);
   freopen(stderr_file.c_str(), "w+", stderr);
+
+  bool unbuffered = false;
+  napi_get_value_bool(env, args[7], &unbuffered);
+  if (unbuffered) {
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setenv("GFORTRAN_UNBUFFERED_ALL", "1", true);
+    OH_LOG_INFO(LOG_APP, "Stdout is unbuffered");
+  }
 
   // use fork
   // 502.gcc_r does not free memory, leading to out of memory
