@@ -6,7 +6,7 @@ Running SPEC INT 2017 benchmark on HUAWEI MateBook Pro:
 
 ## Overview
 
-Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT. Please update SPEC CPU 2017 to the latest version available, otherwise see #2 for possible workarounds.
+Run SPEC CPU 2017 benchmark on OpenHarmony/HarmonyOS NEXT. Please update SPEC CPU 2017 to the latest version available, otherwise see [#2](https://github.com/jiegec/SPECCPU2017Harmony/issues/2) for possible workarounds.
 
 It currently supports running SPEC CPU 2017 int rate-1 and fp rate-1.
 
